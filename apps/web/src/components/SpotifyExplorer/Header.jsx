@@ -4,8 +4,12 @@ export function Header({ activeTab, setActiveTab }) {
   return (
     <div className="p-6 border-b border-gray-800">
       <h1 className="text-3xl font-bold text-green-400 mb-4">
-        Spotify Explorer
+        COMP 435 Data Visualization Final Project
       </h1>
+
+      <h2 className="text-2xl font-italics text-white-400 mb-4">
+        The Spotify Artist & Genre Explorer   |   by Hanna Chang and Joshua Segebre
+      </h2>
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-900 rounded-lg p-1">
