@@ -1,11 +1,4 @@
-//import type { Config } from '@react-router/dev/config';
-
-// Local Config type to avoid relying on an unavailable '@react-router/dev/config' package
-type Config = {
-	appDirectory?: string;
-	ssr?: boolean;
-	prerender?: string[];
-};
+import type { Config } from '@react-router/dev/config';
 
 export default {
 	appDirectory: './src/app',
