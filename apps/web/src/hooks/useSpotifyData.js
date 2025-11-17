@@ -299,6 +299,7 @@ export function useSpotifyData(spotifyToken) {
       queryKey: ["search", searchQuery],
       queryFn: async () => {
         if (!searchQuery) return { artists: { items: [] } };
+        if (!spotifyToken) return { artists: { items: [] } };
         const response = await fetch(
           `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=artist&limit=20`,
           {
@@ -312,7 +313,7 @@ export function useSpotifyData(spotifyToken) {
         }
         return response.json();
       },
-      enabled: !!searchQuery && searchQuery.length > 2,
+      enabled: !!spotifyToken && !!searchQuery && searchQuery.length > 2,
     });
   };
 
@@ -320,6 +321,7 @@ export function useSpotifyData(spotifyToken) {
   const { data: topArtists, isLoading } = useQuery({
     queryKey: ["topArtists"],
     queryFn: async () => {
+      if (!spotifyToken) return { items: [] };
       const response = await fetch(
         "https://api.spotify.com/v1/me/top/artists?limit=50&time_range=medium_term",
         {
@@ -333,6 +335,7 @@ export function useSpotifyData(spotifyToken) {
       }
       return response.json();
     },
+    enabled: !!spotifyToken,
   });
 
   // Get artist details when selected
@@ -340,7 +343,7 @@ export function useSpotifyData(spotifyToken) {
     return useQuery({
       queryKey: ["artist", selectedArtist],
       queryFn: async () => {
-        if (!selectedArtist) return null;
+        if (!selectedArtist || !spotifyToken) return null;
         const [artistResponse, albumsResponse, relatedResponse] =
           await Promise.all([
             fetch(`https://api.spotify.com/v1/artists/${selectedArtist}`, {
@@ -366,7 +369,7 @@ export function useSpotifyData(spotifyToken) {
 
         return { artist, albums, related };
       },
-      enabled: !!selectedArtist,
+      enabled: !!spotifyToken && !!selectedArtist,
     });
   };
 
