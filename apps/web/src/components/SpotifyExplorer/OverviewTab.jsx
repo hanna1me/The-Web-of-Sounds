@@ -31,7 +31,7 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           based on genre similarities and popularity patterns.
         </p>
         {collaborationData && collaborationData.length > 0 ? (
-          <ChordDiagram data={collaborationData} width={700} height={700} />
+          <ChordDiagram data={collaborationData} width={1100} height={700} />
         ) : (
           <div className="h-[400px] flex items-center justify-center text-gray-500">
             {globalArtists
