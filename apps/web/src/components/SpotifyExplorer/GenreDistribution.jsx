@@ -1,16 +1,19 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-export function GenreDistribution({ pieData }) {
+export function GenreDistribution({ pieData = [] }) {
+  const safePieData = Array.isArray(pieData) ? pieData : [];
+  const hasData = safePieData.length > 0;
+
   return (
     <div className="bg-gray-900 p-6 rounded-lg">
       <h3 className="text-xl font-semibold mb-4 text-green-400">
-        Genre Distribution (by First Letter)
+        Genre Distribution
       </h3>
-      {pieData.length > 0 ? (
+      {hasData ? (
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={pieData}
+              data={safePieData}
               dataKey="value"
               nameKey="name"
               cx="50%"
@@ -18,7 +21,7 @@ export function GenreDistribution({ pieData }) {
               outerRadius={100}
               label={({ name, value }) => `${name}: ${value}`}
             >
-              {pieData.map((entry, index) => (
+              {safePieData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>

@@ -104,6 +104,7 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       path.setAttribute("opacity", "0.6");
       path.setAttribute("class", "chord-connection");
 
+      // TODO: Add tooltips for collaboration information (Genre, song title, year, etc.)
       // Add hover effects
       path.addEventListener("mouseenter", () => {
         path.setAttribute("opacity", "1");
