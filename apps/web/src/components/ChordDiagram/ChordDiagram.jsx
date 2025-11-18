@@ -2,12 +2,43 @@ import { useRef, useEffect } from "react";
 
 export function ChordDiagram({ data, width = 600, height = 600 }) {
   const svgRef = useRef(null);
+  const tooltipRef = useRef(null);
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
-
     const svg = svgRef.current;
+    if (!svg) return;
+    const container = svg.parentElement;
+    if (!container) return;
+
+    if (!data || data.length === 0) {
+      svg.innerHTML = "";
+      if (tooltipRef.current && tooltipRef.current.parentElement === container) {
+        container.removeChild(tooltipRef.current);
+        tooltipRef.current = null;
+      }
+      return;
+    }
+
     svg.innerHTML = "";
+    let tooltipEl = tooltipRef.current;
+    if (!tooltipEl) {
+      tooltipEl = document.createElement("div");
+      tooltipRef.current = tooltipEl;
+    }
+    tooltipEl.style.position = "absolute";
+    tooltipEl.style.pointerEvents = "none";
+    tooltipEl.style.backgroundColor = "rgba(17, 24, 39, 0.9)";
+    tooltipEl.style.color = "white";
+    tooltipEl.style.fontSize = "12px";
+    tooltipEl.style.padding = "4px 8px";
+    tooltipEl.style.borderRadius = "6px";
+    tooltipEl.style.border = "1px solid rgba(75, 85, 99, 0.8)";
+    tooltipEl.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
+    tooltipEl.style.whiteSpace = "pre-line";
+    tooltipEl.style.display = "none";
+    container.style.position = "relative";
+    container.appendChild(tooltipEl);
+    const cleanupFns = [];
 
     const radius = Math.min(width, height) / 2 - 40;
     const centerX = width / 2;
@@ -76,7 +107,7 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
     });
 
     // Draw connections
-    data.forEach(({ source, target, value }) => {
+    data.forEach(({ source, target, value, year, genres, song }) => {
       const sourceIndex = artists.indexOf(source);
       const targetIndex = artists.indexOf(target);
 
@@ -104,23 +135,58 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       path.setAttribute("opacity", "0.6");
       path.setAttribute("class", "chord-connection");
 
-      // TODO: Add tooltips for collaboration information (Genre, song title, year, etc.)
-      // Add hover effects
-      path.addEventListener("mouseenter", () => {
+      const genreText = genres?.length ? genres.join(", ") : "Similar genre";
+      const releaseYear = song?.releaseYear || year;
+      const yearText = releaseYear ? `Year: ${releaseYear}` : "Year: Various";
+      const songText = song?.title
+        ? `Song: ${song.title}`
+        : "Song: Collaborative session";
+      const tooltipContent = `${source} ↔ ${target}\n${songText}\n${yearText}\nShared genres: ${genreText}`;
+
+      const updateTooltipPosition = (event) => {
+        const rect = container.getBoundingClientRect();
+        tooltipEl.style.left = `${event.clientX - rect.left + 12}px`;
+        tooltipEl.style.top = `${event.clientY - rect.top + 12}px`;
+      };
+      const handleEnter = (event) => {
         path.setAttribute("opacity", "1");
         path.setAttribute("stroke-width", Math.max(2, value));
-      });
-      path.addEventListener("mouseleave", () => {
+        tooltipEl.textContent = tooltipContent;
+        tooltipEl.style.display = "block";
+        updateTooltipPosition(event);
+      };
+      const handleMove = (event) => {
+        updateTooltipPosition(event);
+      };
+      const handleLeave = () => {
         path.setAttribute("opacity", "0.6");
         path.setAttribute("stroke-width", Math.max(1, value / 2));
+        tooltipEl.style.display = "none";
+      };
+
+      path.addEventListener("mouseenter", handleEnter);
+      path.addEventListener("mousemove", handleMove);
+      path.addEventListener("mouseleave", handleLeave);
+
+      cleanupFns.push(() => {
+        path.removeEventListener("mouseenter", handleEnter);
+        path.removeEventListener("mousemove", handleMove);
+        path.removeEventListener("mouseleave", handleLeave);
       });
 
       svg.appendChild(path);
     });
+    return () => {
+      cleanupFns.forEach((fn) => fn());
+      if (tooltipEl && tooltipEl.parentElement === container) {
+        container.removeChild(tooltipEl);
+        tooltipRef.current = null;
+      }
+    };
   }, [data, width, height]);
 
   return (
-    <div className="flex justify-center">
+    <div className="relative flex justify-center">
       <svg
         ref={svgRef}
         width={width}

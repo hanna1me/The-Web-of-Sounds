@@ -1,9 +1,15 @@
+import { useMemo } from "react";
 import { ChordDiagram } from "@/components/ChordDiagram/ChordDiagram";
+import { filterArtistsByYear } from "@/hooks/useCollaborationData";
 
 export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
   // Debug info
   console.log("OverviewTab - globalArtists:", globalArtists);
   console.log("OverviewTab - collaborationData:", collaborationData);
+  const filteredArtists = useMemo(
+    () => filterArtistsByYear(globalArtists, yearRange),
+    [globalArtists, yearRange],
+  );
 
   return (
     <div className="space-y-6">
@@ -12,9 +18,8 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
         <p>
           <strong>Debug Info:</strong>
         </p>
-        <p>
-          Global Artists: {globalArtists ? globalArtists.length : "Loading..."}
-        </p>
+        <p>Global Artists: {globalArtists ? globalArtists.length : "Loading..."}</p>
+        <p>Artists in Range: {filteredArtists.length}</p>
         <p>
           Collaborations:{" "}
           {collaborationData ? collaborationData.length : "None"}
@@ -44,13 +49,13 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
       </div>
 
       {/* Top Artists Grid */}
-      {globalArtists && globalArtists.length > 0 && (
+      {filteredArtists.length > 0 && (
         <div className="bg-gray-900 p-6 rounded-lg">
           <h3 className="text-xl font-semibold mb-4 text-green-400">
             Top Artists ({yearRange[0]} - {yearRange[1]})
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
-            {globalArtists.slice(0, 20).map((artist) => (
+            {filteredArtists.slice(0, 20).map((artist) => (
               <div key={artist.id} className="text-center">
                 <img
                   src={artist.images[0]?.url || "/api/placeholder/60/60"}
@@ -66,7 +71,6 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           </div>
         </div>
       )}
-
       {/* Show message if no data */}
       {(!globalArtists || globalArtists.length === 0) && (
         <div className="bg-gray-900 p-6 rounded-lg">
@@ -79,6 +83,20 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           </p>
         </div>
       )}
+      {/* No artists match year range */}
+      {globalArtists &&
+        globalArtists.length > 0 &&
+        filteredArtists.length === 0 && (
+          <div className="bg-gray-900 p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4 text-green-400">
+              No Artists Found in Range
+            </h3>
+            <p className="text-gray-400">
+              Adjust the year range sliders to include more artists. The current
+              filters exclude all available data.
+            </p>
+          </div>
+        )}
     </div>
   );
 }
