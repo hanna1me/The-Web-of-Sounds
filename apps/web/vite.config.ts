@@ -1,9 +1,9 @@
 import path from "node:path";
-import { defineConfig } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
+import { reactRouterHonoServer } from "react-router-hono-server/dev";
+import { defineConfig } from "vite";
 import babel from "vite-plugin-babel";
 import tsconfigPaths from "vite-tsconfig-paths";
-
 import { addRenderIds } from "./plugins/addRenderIds";
 import { aliases } from "./plugins/aliases";
 import consoleToParent from "./plugins/console-to-parent";
@@ -13,13 +13,8 @@ import { nextPublicProcessEnv } from "./plugins/nextPublicProcessEnv";
 import { restart } from "./plugins/restart";
 import { restartEnvFileChange } from "./plugins/restartEnvFileChange";
 
-// IMPORTANT: only use hono dev server plugin in development
-const isDev = process.env.NODE_ENV !== "production";
-
 export default defineConfig({
   envPrefix: "NEXT_PUBLIC_",
-  logLevel: "info",
-
   optimizeDeps: {
     include: ["fast-glob", "lucide-react", "d3"],
     exclude: [
@@ -29,23 +24,29 @@ export default defineConfig({
       "hono/context-storage",
       "@auth/core/errors",
       "fsevents",
-      "lightningcss",
-    ],
+      "lightningcss"
+    ]
   },
-
+  logLevel: "info",
   plugins: [
     nextPublicProcessEnv(),
     restartEnvFileChange(),
 
-    // Keep styled-jsx transform
+    // Only needed for dev local server — harmless in SPA builds,
+    // but keep it here so dev keeps working.
+    reactRouterHonoServer({
+      serverEntryPoint: "./__create/index.ts",
+      runtime: "node"
+    }),
+
     babel({
       include: ["src/**/*.{js,jsx,ts,tsx}"],
       exclude: /node_modules/,
       babelConfig: {
         babelrc: false,
         configFile: false,
-        plugins: ["styled-jsx/babel"],
-      },
+        plugins: ["styled-jsx/babel"]
+      }
     }),
 
     restart({
@@ -55,33 +56,19 @@ export default defineConfig({
         "src/**/layout.jsx",
         "src/**/layout.tsx",
         "src/**/route.js",
-        "src/**/route.ts",
-      ],
+        "src/**/route.ts"
+      ]
     }),
 
     consoleToParent(),
     loadFontsFromTailwindSource(),
     addRenderIds(),
 
-    // React Router plugin (this is what Vercel should build with)
     reactRouter(),
-
     tsconfigPaths(),
     aliases(),
-    layoutWrapperPlugin(),
-
-    // DEV-ONLY: react-router-hono-server (prevents prod build weirdness)
-    ...(isDev
-      ? [
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          require("react-router-hono-server/dev").reactRouterHonoServer({
-            serverEntryPoint: "./__create/index.ts",
-            runtime: "node",
-          }),
-        ]
-      : []),
+    layoutWrapperPlugin()
   ],
-
   resolve: {
     alias: {
       lodash: "lodash-es",
@@ -89,26 +76,28 @@ export default defineConfig({
       stripe: path.resolve(__dirname, "./src/__create/stripe"),
       "@auth/create/react": "@hono/auth-js/react",
       "@auth/create": path.resolve(__dirname, "./src/__create/@auth/create"),
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(__dirname, "src")
     },
-    dedupe: ["react", "react-dom"],
+    dedupe: ["react", "react-dom"]
   },
-
   clearScreen: false,
-
   server: {
     allowedHosts: true,
     host: "0.0.0.0",
     port: 4000,
     hmr: { overlay: false },
     warmup: {
-      clientFiles: ["./src/app/**/*", "./src/app/root.tsx", "./src/app/routes.ts"],
-    },
+      clientFiles: ["./src/app/**/*", "./src/app/root.tsx", "./src/app/routes.ts"]
+    }
   },
 
-  // Helps avoid esbuild target issues if anything uses modern syntax
+  // Fixes “top-level await not available…” style build targets
   build: {
-    target: "es2022",
+    target: "es2022"
   },
-});
 
+  // Fixes Vercel SSR bundler complaining about resolving d3
+  ssr: {
+    noExternal: ["d3"]
+  }
+});
