@@ -13,91 +13,93 @@ import { nextPublicProcessEnv } from "./plugins/nextPublicProcessEnv";
 import { restart } from "./plugins/restart";
 import { restartEnvFileChange } from "./plugins/restartEnvFileChange";
 
-export default defineConfig({
-  envPrefix: "NEXT_PUBLIC_",
-  optimizeDeps: {
-    include: ["fast-glob", "lucide-react", "d3"],
-    exclude: [
-      "@hono/auth-js/react",
-      "@hono/auth-js",
-      "@auth/core",
-      "hono/context-storage",
-      "@auth/core/errors",
-      "fsevents",
-      "lightningcss"
-    ]
-  },
-  logLevel: "info",
-  plugins: [
-    nextPublicProcessEnv(),
-    restartEnvFileChange(),
+export default defineConfig(({ command }) => {
+  const isDev = command === "serve";
 
-    // Only needed for dev local server — harmless in SPA builds,
-    // but keep it here so dev keeps working.
-    reactRouterHonoServer({
-      serverEntryPoint: "./__create/index.ts",
-      runtime: "node"
-    }),
-
-    babel({
-      include: ["src/**/*.{js,jsx,ts,tsx}"],
-      exclude: /node_modules/,
-      babelConfig: {
-        babelrc: false,
-        configFile: false,
-        plugins: ["styled-jsx/babel"]
-      }
-    }),
-
-    restart({
-      restart: [
-        "src/**/page.jsx",
-        "src/**/page.tsx",
-        "src/**/layout.jsx",
-        "src/**/layout.tsx",
-        "src/**/route.js",
-        "src/**/route.ts"
-      ]
-    }),
-
-    consoleToParent(),
-    loadFontsFromTailwindSource(),
-    addRenderIds(),
-
-    reactRouter(),
-    tsconfigPaths(),
-    aliases(),
-    layoutWrapperPlugin()
-  ],
-  resolve: {
-    alias: {
-      lodash: "lodash-es",
-      "npm:stripe": "stripe",
-      stripe: path.resolve(__dirname, "./src/__create/stripe"),
-      "@auth/create/react": "@hono/auth-js/react",
-      "@auth/create": path.resolve(__dirname, "./src/__create/@auth/create"),
-      "@": path.resolve(__dirname, "src")
+  return {
+    envPrefix: "NEXT_PUBLIC_",
+    optimizeDeps: {
+      include: ["fast-glob", "lucide-react", "d3"],
+      exclude: [
+        "@hono/auth-js/react",
+        "@hono/auth-js",
+        "@auth/core",
+        "hono/context-storage",
+        "@auth/core/errors",
+        "fsevents",
+        "lightningcss",
+      ],
     },
-    dedupe: ["react", "react-dom"]
-  },
-  clearScreen: false,
-  server: {
-    allowedHosts: true,
-    host: "0.0.0.0",
-    port: 4000,
-    hmr: { overlay: false },
-    warmup: {
-      clientFiles: ["./src/app/**/*", "./src/app/root.tsx", "./src/app/routes.ts"]
-    }
-  },
+    logLevel: "info",
+    plugins: [
+      nextPublicProcessEnv(),
+      restartEnvFileChange(),
 
-  // Fixes “top-level await not available…” style build targets
-  build: {
-    target: "es2022"
-  },
+      // ✅ DEV ONLY (this is what was blowing up your Vercel build)
+      ...(isDev
+        ? [
+            reactRouterHonoServer({
+              serverEntryPoint: "./__create/index.ts",
+              runtime: "node",
+            }),
+          ]
+        : []),
 
-  // Fixes Vercel SSR bundler complaining about resolving d3
-  ssr: {
-    noExternal: ["d3"]
-  }
+      babel({
+        include: ["src/**/*.{js,jsx,ts,tsx}"],
+        exclude: /node_modules/,
+        babelConfig: {
+          babelrc: false,
+          configFile: false,
+          plugins: ["styled-jsx/babel"],
+        },
+      }),
+
+      restart({
+        restart: [
+          "src/**/page.jsx",
+          "src/**/page.tsx",
+          "src/**/layout.jsx",
+          "src/**/layout.tsx",
+          "src/**/route.js",
+          "src/**/route.ts",
+        ],
+      }),
+
+      consoleToParent(),
+      loadFontsFromTailwindSource(),
+      addRenderIds(),
+      reactRouter(),
+      tsconfigPaths(),
+      aliases(),
+      layoutWrapperPlugin(),
+    ],
+    resolve: {
+      alias: {
+        lodash: "lodash-es",
+        "npm:stripe": "stripe",
+        stripe: path.resolve(__dirname, "./src/__create/stripe"),
+        "@auth/create/react": "@hono/auth-js/react",
+        "@auth/create": path.resolve(__dirname, "./src/__create/@auth/create"),
+        "@": path.resolve(__dirname, "src"),
+      },
+      dedupe: ["react", "react-dom"],
+    },
+    clearScreen: false,
+    server: {
+      allowedHosts: true,
+      host: "0.0.0.0",
+      port: 4000,
+      hmr: { overlay: false },
+      warmup: {
+        clientFiles: ["./src/app/**/*", "./src/app/root.tsx", "./src/app/routes.ts"],
+      },
+    },
+    build: {
+      target: "es2022",
+    },
+    ssr: {
+      noExternal: ["d3"],
+    },
+  };
 });
