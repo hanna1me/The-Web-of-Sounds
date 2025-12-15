@@ -299,6 +299,7 @@ export function useSpotifyData(spotifyToken) {
       queryKey: ["search", searchQuery],
       queryFn: async () => {
         if (!searchQuery) return { artists: { items: [] } };
+        if (!spotifyToken) return { artists: { items: [] } };
         const response = await fetch(
           `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=artist&limit=20`,
           {
@@ -312,7 +313,7 @@ export function useSpotifyData(spotifyToken) {
         }
         return response.json();
       },
-      enabled: !!searchQuery && searchQuery.length > 2,
+      enabled: !!spotifyToken && !!searchQuery && searchQuery.length > 2,
     });
   };
 
@@ -320,6 +321,7 @@ export function useSpotifyData(spotifyToken) {
   const { data: topArtists, isLoading } = useQuery({
     queryKey: ["topArtists"],
     queryFn: async () => {
+      if (!spotifyToken) return { items: [] };
       const response = await fetch(
         "https://api.spotify.com/v1/me/top/artists?limit=50&time_range=medium_term",
         {
@@ -333,6 +335,7 @@ export function useSpotifyData(spotifyToken) {
       }
       return response.json();
     },
+    enabled: false,
   });
 
   // Get artist details when selected
@@ -340,33 +343,57 @@ export function useSpotifyData(spotifyToken) {
     return useQuery({
       queryKey: ["artist", selectedArtist],
       queryFn: async () => {
-        if (!selectedArtist) return null;
-        const [artistResponse, albumsResponse, relatedResponse] =
-          await Promise.all([
-            fetch(`https://api.spotify.com/v1/artists/${selectedArtist}`, {
+        if (!selectedArtist || !spotifyToken) return null;
+
+        const [
+          artistResponse,
+          albumsResponse,
+          relatedResponse,
+          topTracksResponse,
+        ] = await Promise.all([
+          fetch(`https://api.spotify.com/v1/artists/${selectedArtist}`, {
+            headers: { Authorization: `Bearer ${spotifyToken}` },
+          }),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/albums?limit=50`,
+            {
               headers: { Authorization: `Bearer ${spotifyToken}` },
-            }),
-            fetch(
-              `https://api.spotify.com/v1/artists/${selectedArtist}/albums?limit=50`,
-              {
-                headers: { Authorization: `Bearer ${spotifyToken}` },
-              },
-            ),
-            fetch(
-              `https://api.spotify.com/v1/artists/${selectedArtist}/related-artists`,
-              {
-                headers: { Authorization: `Bearer ${spotifyToken}` },
-              },
-            ),
-          ]);
+            },
+          ),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/related-artists`,
+            {
+              headers: { Authorization: `Bearer ${spotifyToken}` },
+            },
+          ),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/top-tracks?market=US`,
+            {
+              headers: { Authorization: `Bearer ${spotifyToken}` },
+            },
+          ),
+        ]);
 
-        const artist = await artistResponse.json();
-        const albums = await albumsResponse.json();
-        const related = await relatedResponse.json();
+        const [artist, albums, related, topTracksRaw] = await Promise.all([
+          artistResponse.json(),
+          albumsResponse.json(),
+          relatedResponse.json(),
+          topTracksResponse.ok ? topTracksResponse.json() : Promise.resolve({}),
+        ]);
 
-        return { artist, albums, related };
+        const topTracks = Array.isArray(topTracksRaw.tracks)
+          ? topTracksRaw.tracks.map((track) => ({
+              name: track.name,
+              popularity: track.popularity,
+              duration_min: track.duration_ms
+                ? Number((track.duration_ms / 60000).toFixed(2))
+                : null,
+            }))
+          : [];
+
+        return { artist, albums, related, topTracks };
       },
-      enabled: !!selectedArtist,
+      enabled: !!spotifyToken && !!selectedArtist,
     });
   };
 

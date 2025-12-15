@@ -1,4 +1,4 @@
-import { Globe, BarChart3 } from "lucide-react";
+import { Globe, BarChart3, BadgeInfo } from "lucide-react";
 
 export function Header({ activeTab, setActiveTab }) {
   return (
@@ -34,6 +34,17 @@ export function Header({ activeTab, setActiveTab }) {
         >
           <BarChart3 size={18} className="mr-2" />
           Artist Explorer
+        </button>
+        <button
+          onClick={() => setActiveTab("about")}
+          className={`flex items-center px-4 py-2 rounded-md transition-colors ${
+            activeTab === "about"
+              ? "bg-green-600 text-white"
+              : "text-gray-400 hover:text-white hover:bg-gray-800"
+          }`}
+        >
+          <BadgeInfo size={18} className="mr-2" />
+          About
         </button>
       </div>
     </div>

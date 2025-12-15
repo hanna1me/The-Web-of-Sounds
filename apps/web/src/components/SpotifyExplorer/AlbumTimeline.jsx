@@ -19,15 +19,18 @@ export function AlbumTimeline({ chartData }) {
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="year" stroke="#9CA3AF" />
-            <YAxis stroke="#9CA3AF" />
+            <YAxis dataKey="albums" stroke="#9CA3AF" label="Albums" labelAngle={-90}
+            />
+            
             <Tooltip
+              cursor={false}
               contentStyle={{
                 backgroundColor: "#1F2937",
                 border: "1px solid #374151",
                 borderRadius: "6px",
               }}
             />
-            <Bar dataKey="albums" fill="#10B981" />
+            <Bar dataKey="albums" fill="#10B981" activeBar={false} />
           </BarChart>
         </ResponsiveContainer>
       ) : (
