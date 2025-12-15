@@ -4,7 +4,6 @@ import { vercelPreset } from "@vercel/react-router/vite";
 export default {
   appDirectory: "./src/app",
   ssr: true,
-  prerender: ["/*?"],
-
-  presets: [vercelPreset()],
+  // prerender: ['/*?'],  // <-- remove this
 } satisfies Config;
+
