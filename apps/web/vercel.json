@@ -1,4 +1,6 @@
 {
   "framework": "react-router",
-  "outputDirectory": null
+  "outputDirectory": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+
 }
