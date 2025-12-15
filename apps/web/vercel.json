@@ -1,6 +1,10 @@
 {
   "framework": "react-router",
-  "outputDirectory": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-
+  "outputDirectory": "build/client",
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
