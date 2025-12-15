@@ -112,8 +112,10 @@ if (import.meta.env.DEV) {
 		});
 	}
 }
+console.log("ROUTES __dirname:", __dirname);
+
 const tree = buildRouteTree(__dirname);
 const notFound = route('*?', './__create/not-found.tsx');
-const routes = [...generateRoutes(tree), notFound];
+const routes = [index("./page.jsx"), ...generateRoutes(tree), notFound];
 
 export default routes;
