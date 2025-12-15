@@ -30,45 +30,49 @@ function buildRouteTree(dir: string, basePath = ""): Tree {
   return node;
 }
 
-function toRoutePath(fsPath: string) {
-  // Convert [id] -> :id, [...all] -> *
-  const segments = fsPath.split("/").filter(Boolean);
-  return segments
-    .map((seg) => {
-      if (seg.startsWith("[") && seg.endsWith("]")) {
-        const name = seg.slice(1, -1);
-        if (name.startsWith("...")) return "*";
-        return `:${name}`;
-      }
-      return seg;
-    })
-    .join("/");
+function segmentToRoutePart(segment: string) {
+  if (segment.startsWith("[") && segment.endsWith("]")) {
+    const inner = segment.slice(1, -1);
+    if (inner.startsWith("...")) return "*";
+    if (inner.startsWith("[") && inner.endsWith("]")) {
+      return `:${inner.slice(1, -1)}?`;
+    }
+    return `:${inner}`;
+  }
+  return segment;
 }
 
 function generateRoutes(node: Tree): RouteConfigEntry[] {
-  const out: RouteConfigEntry[] = [];
+  const routes: RouteConfigEntry[] = [];
 
   if (node.hasPage) {
-    const componentPath = node.path === "" ? "./page.jsx" : `./${node.path}/page.jsx`;
+    const componentPath =
+      node.path === "" ? "./page.jsx" : `./${node.path}/page.jsx`;
 
     if (node.path === "") {
-      out.push(index(componentPath, { id: "page:/" }));
+      routes.push(index(componentPath, { id: "page:/" }));
     } else {
-      const routePath = toRoutePath(node.path);
-      out.push(route(routePath, componentPath, { id: `page:/${routePath}` }));
+      const processed = node.path
+        .split("/")
+        .map(segmentToRoutePart)
+        .join("/");
+
+      routes.push(
+        route(processed, componentPath, { id: `page:/${processed}` })
+      );
     }
   }
 
   for (const child of node.children) {
-    out.push(...generateRoutes(child));
+    routes.push(...generateRoutes(child));
   }
 
-  return out;
+  return routes;
 }
 
+const notFound = route("*", "./not-found.jsx", { id: "not-found" });
+
 const tree = buildRouteTree(__dirname);
+const routes = [...generateRoutes(tree), notFound];
 
-// SPA mode: keep not-found COMPONENT ONLY (no loader/action)
-const notFound = route("*", "./__create/not-found.tsx", { id: "not-found" });
-
-export default [...generateRoutes(tree), notFound];
+export default routes;

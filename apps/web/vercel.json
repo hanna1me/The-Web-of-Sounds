@@ -2,7 +2,6 @@
   "outputDirectory": "build/client",
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/index.html", "status": 308, "headers": { "Location": "/" } },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
