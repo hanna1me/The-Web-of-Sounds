@@ -335,7 +335,7 @@ export function useSpotifyData(spotifyToken) {
       }
       return response.json();
     },
-    enabled: !!spotifyToken,
+    enabled: false,
   });
 
   // Get artist details when selected

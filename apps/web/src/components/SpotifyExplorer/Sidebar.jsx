@@ -15,7 +15,7 @@ export function Sidebar({
     <div
       className={`${expandedSidebar ? "w-80" : "w-16"} bg-gray-900 p-4 transition-all duration-300`}
     >
-      {activeTab === "explorer" &&"overview" && (
+      {activeTab === "explorer" && "overview" && (
       <button
         onClick={() => setExpandedSidebar(!expandedSidebar)}
         className="w-full mb-4 p-2 bg-gray-800 rounded hover:bg-gray-700 transition-colors"

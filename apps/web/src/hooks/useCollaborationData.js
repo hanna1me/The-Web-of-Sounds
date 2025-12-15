@@ -1,197 +1,169 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-function clampYear(year) {
-  if (!Number.isFinite(year)) return null;
-  return Math.min(2025, Math.max(2000, Math.round(year)));
+function getYear(releaseDate) {
+  if (!releaseDate) return null;
+  const y = Number(String(releaseDate).slice(0, 4));
+  return Number.isFinite(y) ? y : null;
 }
 
-function hashString(value) {
-  let hash = 0;
-  if (!value) return hash;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
+// Simple concurrency limiter
+async function mapWithLimit(items, limit, fn) {
+  const results = [];
+  let i = 0;
 
-const SONG_DESCRIPTORS = [
-  "Echoes",
-  "Pulse",
-  "Horizons",
-  "Mirage",
-  "Spectrum",
-  "Dreams",
-  "Reflections",
-  "Neon",
-  "Aurora",
-  "Voyage",
-];
-
-const SONG_FORMS = [
-  "Session",
-  "Anthem",
-  "Chronicle",
-  "Tapes",
-  "Story",
-  "Odyssey",
-  "Prelude",
-  "Saga",
-];
-
-export function estimateArtistYear(artist, index = 0) {
-  if (!artist) return null;
-  if (Number.isFinite(artist.activeYear)) {
-    return clampYear(artist.activeYear);
-  }
-
-  const baseFromHash = 2000 + (hashString(artist.id || artist.name || String(index)) % 26);
-  let popularityOffset = 0;
-
-  if (typeof artist.popularity === "number") {
-    const normalized = Math.max(0, Math.min(1, artist.popularity / 100));
-    popularityOffset = Math.round((normalized - 0.5) * 8); // Spread +/-4 years
-  }
-
-  return clampYear(baseFromHash + popularityOffset);
-}
-
-function mapArtistsWithYear(artists) {
-  if (!Array.isArray(artists)) return [];
-  return artists.map((artist, index) => ({
-    artist,
-    year: estimateArtistYear(artist, index),
-  }));
-}
-
-export function filterArtistsByYear(artists, yearRange) {
-  const [start = 2000, end = 2025] = yearRange || [];
-  return mapArtistsWithYear(artists)
-    .filter(({ year }) => year && year >= start && year <= end)
-    .map(({ artist }) => artist);
-}
-
-function toTitleCase(word = "") {
-  if (!word) return "";
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-function getGenreDescriptor(genres) {
-  if (!genres || genres.length === 0) return "Fusion";
-  return genres[0]
-    .split(" ")
-    .map((segment) => toTitleCase(segment))
-    .join(" ");
-}
-
-function getArtistHandle(artist) {
-  return artist?.name ? artist.name.split(" ")[0] : "Unknown";
-}
-
-function generateSongTitle(artist1, artist2, genres, year) {
-  const baseHash = hashString(
-    `${artist1?.id || artist1?.name}-${artist2?.id || artist2?.name}`,
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (i < items.length) {
+        const idx = i++;
+        results[idx] = await fn(items[idx], idx);
+      }
+    }
   );
-  const descriptor = SONG_DESCRIPTORS[baseHash % SONG_DESCRIPTORS.length];
-  const form = SONG_FORMS[baseHash % SONG_FORMS.length];
-  const genreLabel = getGenreDescriptor(genres);
-  const suffix = year ? ` (${year})` : "";
 
-  return `${getArtistHandle(artist1)} x ${getArtistHandle(artist2)} - ${genreLabel} ${descriptor}${suffix} ${form}`.trim();
+  await Promise.all(workers);
+  return results;
 }
 
-export function useCollaborationData(globalArtists, yearRange) {
-  // Generate collaboration data (simulated for demo - in real app you'd use actual collaboration data)
-  const collaborationData = useMemo(() => {
-    console.log("useCollaborationData - input globalArtists:", globalArtists);
+async function fetchTopTracks(spotifyToken, artistId) {
+  const res = await fetch(
+    `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
+    { headers: { Authorization: `Bearer ${spotifyToken}` } }
+  );
 
-    if (!globalArtists || globalArtists.length === 0) {
-      console.log("useCollaborationData - no artists provided");
-      return [];
-    }
+  if (!res.ok) {
+    console.warn("top-tracks failed", artistId, res.status);
+    return [];
+  }
 
-    const [startYear, endYear] = yearRange || [2000, 2025];
-    const artistEntries = mapArtistsWithYear(globalArtists);
-    const filteredEntries = artistEntries.filter(
-      ({ year }) => year && year >= startYear && year <= endYear,
-    );
+  const json = await res.json();
+  return Array.isArray(json.tracks) ? json.tracks : [];
+}
 
-    if (filteredEntries.length === 0) {
-      console.log("useCollaborationData - no artists match year filter");
-      return [];
-    }
+/**
+ * Build collaborations:
+ * - edges represent co-credited pairs on tracks
+ * - weight = count of shared tracks within yearRange
+ * - includes sourceName/targetName so you never see "(Unknown artist)"
+ */
+function buildCollaborationsFromTracks({ tracksByArtist, yearRange }) {
+  const [startYear, endYear] = yearRange || [2000, 2025];
 
-    const collaborations = [];
-    const artistNames = filteredEntries.map((entry) => entry.artist.name);
+  // key "idLo|idHi" -> edge object
+  const edgeMap = new Map();
 
-    console.log(
-      "useCollaborationData - processing",
-      artistNames.length,
-      "artists",
-    );
+  for (const tracks of tracksByArtist) {
+    for (const track of tracks) {
+      const y = getYear(track?.album?.release_date);
+      if (!y || y < startYear || y > endYear) continue;
 
-    // Generate simulated collaboration data based on genre similarity
-    for (let i = 0; i < filteredEntries.length; i++) {
-      for (let j = i + 1; j < filteredEntries.length; j++) {
-        const artist1Entry = filteredEntries[i];
-        const artist2Entry = filteredEntries[j];
-        const artist1 = artist1Entry.artist;
-        const artist2 = artist2Entry.artist;
+      const credited = (track.artists || [])
+        .map((a) => ({ id: a?.id, name: a?.name }))
+        .filter((a) => a.id && a.name);
 
-        if (!artist1 || !artist2 || !artist1.genres || !artist2.genres) {
-          continue;
-        }
+      if (credited.length < 2) continue;
 
-        // Check for genre overlap
-        const commonGenres = artist1.genres.filter((genre) =>
-          artist2.genres.some(
-            (g) =>
-              g.includes(genre.split(" ")[0]) ||
-              genre.includes(g.split(" ")[0]),
-          ),
-        );
+      for (let i = 0; i < credited.length; i++) {
+        for (let j = i + 1; j < credited.length; j++) {
+          const a = credited[i];
+          const b = credited[j];
 
-        if (commonGenres.length > 0) {
-          const artist1Year = artist1Entry.year;
-          const artist2Year = artist2Entry.year;
-          const collaborationYear = clampYear(
-            (artist1Year + artist2Year) / 2,
-          );
+          const [lo, hi] = a.id < b.id ? [a, b] : [b, a];
+          const key = `${lo.id}|${hi.id}`;
 
-          // Create collaboration based on genre similarity and popularity
-          const strength = commonGenres.length + Math.random() * 3;
-          if (strength > 1.5) {
-            const songTitle = generateSongTitle(
-              artist1,
-              artist2,
-              commonGenres,
-              collaborationYear,
-            );
-            collaborations.push({
-              source: artist1.name,
-              target: artist2.name,
-              value: Math.round(strength),
-              year: collaborationYear,
-              genres: commonGenres.slice(0, 3),
-              song: {
-                title: songTitle,
-                releaseYear: collaborationYear,
-              },
+          const prev = edgeMap.get(key);
+          if (!prev) {
+            edgeMap.set(key, {
+              sourceId: lo.id,
+              sourceName: lo.name,
+              targetId: hi.id,
+              targetName: hi.name,
+              weight: 1,
+              tracks: track?.name ? [track.name] : [],
+              years: y ? [y] : [],
             });
+          } else {
+            prev.weight += 1;
+
+            // keep a few sample track names for tooltips
+            if (track?.name && prev.tracks.length < 5 && !prev.tracks.includes(track.name)) {
+              prev.tracks.push(track.name);
+            }
+            if (y && prev.years.length < 5) prev.years.push(y);
+
+            // refresh names if somehow missing
+            if (!prev.sourceName) prev.sourceName = lo.name;
+            if (!prev.targetName) prev.targetName = hi.name;
           }
         }
       }
     }
+  }
 
-    const finalCollaborations = collaborations.slice(0, 100);
-    console.log(
-      "useCollaborationData - generated",
-      finalCollaborations.length,
-      "collaborations",
-    );
+  return edgeMap;
+}
 
-    return finalCollaborations; // Limit connections for performance
-  }, [globalArtists, yearRange]);
+export function useCollaborationData(globalArtists, yearRange, spotifyToken) {
+  const [collaborationData, setCollaborationData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  return collaborationData;
+  const seedArtists = useMemo(() => {
+    if (!Array.isArray(globalArtists)) return [];
+    return globalArtists.slice(0, 25);
+  }, [globalArtists]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      if (!spotifyToken || seedArtists.length === 0) {
+        setCollaborationData([]);
+        return;
+      }
+
+      setLoading(true);
+
+      const tracksByArtist = await mapWithLimit(seedArtists, 5, async (artist) => {
+        return fetchTopTracks(spotifyToken, artist.id);
+      });
+
+      if (cancelled) return;
+
+      const edgeMap = buildCollaborationsFromTracks({ tracksByArtist, yearRange });
+
+      const rows = Array.from(edgeMap.values()).map((edge) => ({
+        sourceId: edge.sourceId,
+        sourceName: edge.sourceName,
+        targetId: edge.targetId,
+        targetName: edge.targetName,
+        weight: edge.weight,
+        value: edge.weight,
+        track: edge.tracks[0] || "",
+        tracks: edge.tracks,
+        year: edge.years[0] ?? null,
+      }));
+
+      rows.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
+      const pruned = rows.slice(0, 120);
+
+      if (!cancelled) {
+        setCollaborationData(pruned);
+        setLoading(false);
+      }
+    }
+
+    run().catch((e) => {
+      console.error("useCollaborationData error", e);
+      if (!cancelled) {
+        setCollaborationData([]);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spotifyToken, seedArtists, yearRange]);
+
+  return collaborationData; // (optionally also return loading if you want)
 }

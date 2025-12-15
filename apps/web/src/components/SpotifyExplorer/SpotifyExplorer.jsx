@@ -46,7 +46,7 @@ export function SpotifyExplorer() {
   } = useSpotifyData(spotifyToken);
   const { data: searchResults } = useArtistSearch(searchQuery);
   const { data: artistData } = useArtistDetails(selectedArtist);
-  const collaborationData = useCollaborationData(globalArtists, yearRange);
+  const collaborationData = useCollaborationData(globalArtists, yearRange, spotifyToken);
   const { pieData, chartData } = useChartData(artistData, yearRange);
 
   const addToCompare = useCallback(() => {

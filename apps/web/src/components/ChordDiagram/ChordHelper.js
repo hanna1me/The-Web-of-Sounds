@@ -1,97 +1,58 @@
-import * as d3 from "d3";
+// ChordHelper.js
+export function createChords(collaborations, artistIndex) {
+  const nodeIds = new Set();
+  const nameFallback = new Map();
 
-const SPOTIFY_TOKEN =
-  "BQDyy1q9tdm-BoissSrLEQWo6Xva3-dFb9INZplxVrOXpsmJssKZgSQ6rbkbq3dAXfHG5Lp8WQLjQcn9aZ1Xxnnt0rsMg1LPTQwZtnAwrsdhh-A2IKjP29dJyYSDsO8lv5inwYdcE5k";
+  for (const d of collaborations ?? []) {
+    if (d?.sourceId) nodeIds.add(d.sourceId);
+    if (d?.targetId) nodeIds.add(d.targetId);
 
-//Search Artists
-async function overallArtists(limit=5){
-  const characterNames = "abcdefghijklmnopqrstuvwxyz".split("");
-  let allArtist = [];
-  
-  for (const letter of characterNames){
-    const names = await spotifyAPI(`/search?q=${letter}&type=artist&limit=5`);
-    allArtist.push(...names.artists.items);
-    if (allArtist.length >= limit) break;
+    if (d?.sourceId && d?.sourceName) nameFallback.set(d.sourceId, d.sourceName);
+    if (d?.targetId && d?.targetName) nameFallback.set(d.targetId, d.targetName);
   }
-  return [...new Map(allArtist.map(a => [a.id, a])).values()];
-}
 
-// Collaboration Function
-async function getCollaborations(artist){
-  const topTracks = await getTopTracks(artist.id);
-  const collaborations = [];
-
-      topTracks.forEach(track => {
-        const year = new Date(track.album.release_date).getFullYear();
-        
-        if (track.artists.length > 1){
-          track.artists.forEach(source => {
-            track.artists.forEach(target =>{
-              if (source.id !== target.id){
-                collaborations.push({
-                  year: year,
-                  track: track.name,
-                  source: source.name,
-                  target: target.name,
-                  genre: artist.genres.length ? artist.genres[0] : "Not Specified",
-                  popularity: track.popularity
-                });
-              }
-            });
-          });
-        }
-    });
-  
-
-  return collaborations;
-}
-
-// Genre Map for Artist
-function mapGenres(allArtists){
-  const genreMap = {};
-  allArtists.forEach(a => {
-    genreMap[a.name] = a.genres.length ? a.genres[0] : "Not Specified";
-  });
-  return genreMap;
-}
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function createChords(collaborations, genreMap) {
-  const artistNames = new Set();
-  collaborations.forEach((d) => {
-    artistNames.add(d.source);
-    artistNames.add(d.target);
+  const nodes = Array.from(nodeIds).map((id) => {
+    const meta = artistIndex?.get(id);
+    return {
+      id,
+      name: meta?.name ?? nameFallback.get(id) ?? "(Unknown artist)",
+      genre: meta?.genre ?? "Not Specified",
+    };
   });
 
-  const nodes = Array.from(artistNames).map((name) => ({
-    name,
-    genre: genreMap[name] || "Not Specified",
-  }));
+  // Aggregate links (undirected) so weights are meaningful + matrix is stable
+  const linkAgg = new Map();
+  for (const d of collaborations ?? []) {
+    if (!d?.sourceId || !d?.targetId) continue;
+    if (d.sourceId === d.targetId) continue;
 
-  const links = collaborations.map((d) => ({
+    const a = d.sourceId;
+    const b = d.targetId;
+    const key = a < b ? `${a}__${b}` : `${b}__${a}`;
+
+    const prev = linkAgg.get(key) ?? {
+      source: a < b ? a : b,
+      target: a < b ? b : a,
+      weight: 0,
+      tracks: new Set(),
+      years: new Set(),
+    };
+
+    prev.weight += Number(d.weight ?? 1);
+    if (d.track) prev.tracks.add(d.track);
+    if (d.year) prev.years.add(d.year);
+
+    linkAgg.set(key, prev);
+  }
+
+  const links = Array.from(linkAgg.values()).map((d) => ({
     source: d.source,
     target: d.target,
-    track: d.track,
-    genre: genreMap[d.source] || "Not Specified",
-    targetGenre: genreMap[d.target] || "Not Specified",
+    weight: d.weight,
+    // nice tooltip helpers (optional)
+    track: Array.from(d.tracks).slice(0, 3).join(", "),
+    year: Array.from(d.years).sort().at(-1) ?? null,
   }));
 
   return { nodes, links };
-}
-
-export async function fetchChordData(limit = 10) {
-  const allArtists = await overallArtists(limit);
-  const genreMap = mapGenres(allArtists);
-
-  let allCollaborators = [];
-  for (const artist of allArtists) {
-    const collaborations = await getCollaborations(artist);
-    allCollaborators.push(...collaborations);
-    await delay(1000);
-  }
-
-  return createChords(allCollaborators, genreMap);
 }
