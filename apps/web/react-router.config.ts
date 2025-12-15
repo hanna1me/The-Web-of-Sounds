@@ -1,5 +1,9 @@
 import type { Config } from "@react-router/dev/config";
 
 export default {
-  ssr: false, // ✅ stops build/server entirely
+  // ✅ your app lives here
+  appDirectory: "src/app",
+
+  // ✅ SPA deploy (no server output / hono scanning)
+  ssr: false,
 } satisfies Config;
