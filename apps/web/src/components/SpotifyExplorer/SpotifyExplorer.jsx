@@ -36,7 +36,6 @@ export function SpotifyExplorer() {
     }
   }, [spotifyToken]);
 
-  // Use custom hooks
   const {
     globalArtists,
     topArtists,

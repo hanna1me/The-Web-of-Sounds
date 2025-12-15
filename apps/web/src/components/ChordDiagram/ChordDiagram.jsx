@@ -11,7 +11,7 @@ export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
     const container = svg.parentElement;
     if (!container) return;
 
-    // No data → clear + cleanup tooltip
+    // Clear + cleanup tooltip if no data
     if (!nodes || !links || nodes.length === 0 || links.length === 0) {
       svg.innerHTML = "";
       if (tooltipRef.current && tooltipRef.current.parentElement === container) {
@@ -24,7 +24,6 @@ export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
     // Clear previous render
     svg.innerHTML = "";
 
-    // Tooltip setup (script-2 style)
     let tooltipEl = tooltipRef.current;
     if (!tooltipEl) {
       tooltipEl = document.createElement("div");
@@ -52,11 +51,10 @@ export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
     const centerX = width / 2;
     const centerY = height / 2;
 
-    // ==== DATA PREP (from script 1 logic) ====
-
+    // Data prep
     const artistNames = nodes.map((d) => d.name);
 
-    // Color by genre (like script 1)
+    // Color by genre
     const genreScale = d3
       .scaleOrdinal(d3.schemePaired)
       .domain([...new Set(nodes.map((d) => d.genre))]);
@@ -77,7 +75,7 @@ export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
 
     const angleStep = (2 * Math.PI) / artistNames.length;
 
-    // ==== ARTIST DOTS + LABELS (visual like script 2) ====
+    // Artist dot
     artistNames.forEach((artist, i) => {
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + radius * Math.cos(angle);
@@ -122,7 +120,7 @@ export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
       svg.appendChild(text);
     });
 
-    // ==== CONNECTIONS (curved paths + tooltip) ====
+    // Links
     links.forEach((link) => {
       const { source, target, track, genre, targetGenre } = link;
 

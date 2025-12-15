@@ -62,7 +62,6 @@ export function TopTracksChart({ topTracks = [] }) {
                 gridDash: [3, 3],
               }),
             vl.color().value("#10B981"),
-            // ✅ IMPORTANT: don't chain .title() on vl.fieldN/fieldQ in this wrapper
             vl.tooltip([
               vl.fieldN("name"),
               vl.fieldQ("popularity"),

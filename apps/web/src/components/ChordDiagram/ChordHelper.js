@@ -1,4 +1,3 @@
-// ChordHelper.js
 export function createChords(collaborations, artistIndex) {
   const nodeIds = new Set();
   const nameFallback = new Map();
@@ -20,7 +19,7 @@ export function createChords(collaborations, artistIndex) {
     };
   });
 
-  // Aggregate links (undirected) so weights are meaningful + matrix is stable
+  // Aggregate links
   const linkAgg = new Map();
   for (const d of collaborations ?? []) {
     if (!d?.sourceId || !d?.targetId) continue;
@@ -49,7 +48,6 @@ export function createChords(collaborations, artistIndex) {
     source: d.source,
     target: d.target,
     weight: d.weight,
-    // nice tooltip helpers (optional)
     track: Array.from(d.tracks).slice(0, 3).join(", "),
     year: Array.from(d.years).sort().at(-1) ?? null,
   }));

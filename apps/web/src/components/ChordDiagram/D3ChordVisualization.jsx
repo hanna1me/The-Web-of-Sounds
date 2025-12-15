@@ -34,10 +34,10 @@ export function D3ChordVisualization({
     const containerW = Math.max(300, rect.width || 0);
     const containerH = Math.max(300, rect.height || 0);
 
-    // Use the smaller dimension so the chord stays circular and fits
+    // Use smaller dimension so the chord stays circular and fits
     const size = Math.min(containerW, containerH);
 
-    // Radii relative to container
+    // Radius relative to container
     const innerRadius = size * 0.34;
     const outerRadius = size * 0.38;
 
@@ -51,7 +51,7 @@ export function D3ChordVisualization({
       .style("background", "transparent")
       .style("font-family", "Inter, system-ui, sans-serif");
 
-    // Title (positioned near top inside the viewBox)
+    // Title (might delete)
     svg
       .append("text")
       .text(title)
@@ -62,7 +62,7 @@ export function D3ChordVisualization({
       .style("font-size", "18px")
       .style("font-weight", 700);
 
-    // Build index map + matrix
+    // Build index map and matrix
     const nodesToIndex = new Map(
         nodes.map((d, i) => [d.id ?? d.name, i])
     );
@@ -83,10 +83,9 @@ export function D3ChordVisualization({
     const chord = d3.chord().padAngle(0.05).sortSubgroups(d3.descending);
     const chords = chord(matrix);
 
-    // Spotify green (you can swap this for a real genre palette later)
     const color = () => "#1DB954";
 
-    // Tooltip (create once per render, remove on cleanup)
+    // Tooltip
     const tooltip = d3
       .select("body")
       .append("div")
@@ -103,7 +102,7 @@ export function D3ChordVisualization({
       .style("pointer-events", "none")
       .style("opacity", 0);
 
-    // Groups (arcs + labels)
+    // Groups (chord)
     const group = svg
       .append("g")
       .selectAll("g")
@@ -117,7 +116,7 @@ export function D3ChordVisualization({
       .attr("stroke-width", 1)
       .attr("d", d3.arc().innerRadius(innerRadius).outerRadius(outerRadius));
 
-    // Labels
+    // Labels and links
     group
       .append("text")
       .each((d) => {
@@ -158,7 +157,7 @@ export function D3ChordVisualization({
         });
       });
 
-    // Ribbons (keep reference for hover fades)
+    // Link ribbons (keep reference for hover fades)
     const ribbons = svg
       .append("g")
       .attr("fill-opacity", 0.6)
@@ -170,7 +169,7 @@ export function D3ChordVisualization({
       .style("stroke", "#111827")
       .style("stroke-width", 0.5);
 
-    // Ribbon tooltip + hover fade
+    // Ribbon tooltip and hover fade
     ribbons
     ribbons.on("mouseover", (event, d) => {
         const sourceId = nodes[d.source.index]?.id ?? nodes[d.source.index]?.name;
@@ -228,7 +227,7 @@ export function D3ChordVisualization({
         ribbons.style("opacity", 0.6);
       });
 
-    // Optional: hover arcs to highlight connected ribbons
+    // Hover arcs to highlight connected ribbons
     arcPaths
       .on("mouseover", (event, d) => {
         const idx = d.index;

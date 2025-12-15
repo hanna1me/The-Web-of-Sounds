@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 export function useChartData(artistData, yearRange) {
-  // Genre distribution data for circular viz
+  // Genre distribution
   const genreData = useMemo(() => {
     if (!artistData) return {};
 
@@ -30,7 +30,7 @@ export function useChartData(artistData, yearRange) {
       (artist.genres || []).forEach(addGenre);
     });
 
-    // Fallback: use the selected artist's own genres if related artists are missing genre info
+    // Fallback
     if (Object.keys(counts).length === 0) {
       (artistData.artist?.genres || []).forEach(addGenre);
     }

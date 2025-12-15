@@ -6,7 +6,7 @@ function getYear(releaseDate) {
   return Number.isFinite(y) ? y : null;
 }
 
-// Simple concurrency limiter
+// Concurrency limiter
 async function mapWithLimit(items, limit, fn) {
   const results = [];
   let i = 0;
@@ -42,14 +42,14 @@ async function fetchTopTracks(spotifyToken, artistId) {
 
 /**
  * Build collaborations:
- * - edges represent co-credited pairs on tracks
- * - weight = count of shared tracks within yearRange
- * - includes sourceName/targetName so you never see "(Unknown artist)"
+ * edges represent co-credited pairs on tracks
+ * weight = count of shared tracks within yearRange
+ * includes sourceName/targetName so you never see "(Unknown artist)"
  */
 function buildCollaborationsFromTracks({ tracksByArtist, yearRange }) {
   const [startYear, endYear] = yearRange || [2000, 2025];
 
-  // key "idLo|idHi" -> edge object
+  // key "idLo|idHi" --> edge object
   const edgeMap = new Map();
 
   for (const tracks of tracksByArtist) {
@@ -85,13 +85,13 @@ function buildCollaborationsFromTracks({ tracksByArtist, yearRange }) {
           } else {
             prev.weight += 1;
 
-            // keep a few sample track names for tooltips
+            // Keep a few sample track names for tooltips
             if (track?.name && prev.tracks.length < 5 && !prev.tracks.includes(track.name)) {
               prev.tracks.push(track.name);
             }
             if (y && prev.years.length < 5) prev.years.push(y);
 
-            // refresh names if somehow missing
+            // Refresh names if somehow missing
             if (!prev.sourceName) prev.sourceName = lo.name;
             if (!prev.targetName) prev.targetName = hi.name;
           }
@@ -165,5 +165,5 @@ export function useCollaborationData(globalArtists, yearRange, spotifyToken) {
     };
   }, [spotifyToken, seedArtists, yearRange]);
 
-  return collaborationData; // (optionally also return loading if you want)
+  return collaborationData;
 }

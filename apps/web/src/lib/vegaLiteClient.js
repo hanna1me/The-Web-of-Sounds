@@ -18,7 +18,6 @@ let vl = vlAll;
 try {
   vl.register(vega, vegaLite, options);
 } catch (error) {
-  // Avoid crashing the whole app if registration fails (e.g., SSR quirks)
   console.error("Error registering Vega-Lite API:", error);
   vl = null;
 }

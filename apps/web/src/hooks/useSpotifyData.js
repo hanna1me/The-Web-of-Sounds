@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 export function useSpotifyData(spotifyToken) {
-  // Fallback data function
+  // Fallback
   const getFallbackData = () => [
     {
       id: "1",
@@ -180,14 +180,14 @@ export function useSpotifyData(spotifyToken) {
     },
   ];
 
-  // Get top 100 artists globally for chord diagram
+  // Top 100 artists globally for chord diagram
   const { data: globalArtists } = useQuery({
     queryKey: ["globalArtists"],
     queryFn: async () => {
       console.log("Starting to fetch global artists...");
 
       try {
-        // Check if token is provided
+        // Check token
         if (!spotifyToken) {
           console.log("No Spotify token provided, using fallback data");
           return getFallbackData();
@@ -196,7 +196,7 @@ export function useSpotifyData(spotifyToken) {
         // Get popular artists from multiple sources
         const promises = [];
 
-        // Method 1: Search for popular genres and get artists
+        // Search for popular genres and get artists
         const popularGenres = ["pop", "rock", "hip-hop", "electronic", "indie"];
 
         for (const genre of popularGenres) {
@@ -226,7 +226,7 @@ export function useSpotifyData(spotifyToken) {
           );
         }
 
-        // Method 2: Search for general popular terms
+        // Search for general popular terms
         const popularSearchTerms = [
           "taylor swift",
           "drake",
@@ -278,7 +278,7 @@ export function useSpotifyData(spotifyToken) {
 
         console.log("Successfully fetched artists:", uniqueArtists.length);
 
-        // If we got some data from API, return it, otherwise use fallback
+        // Return if theres data, otherwise use fallback
         if (uniqueArtists.length > 0) {
           return uniqueArtists;
         } else {
