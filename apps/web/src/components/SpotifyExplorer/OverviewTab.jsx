@@ -1,15 +1,44 @@
 import { useMemo } from "react";
 import { ChordDiagram } from "@/components/ChordDiagram/ChordDiagram";
 import { filterArtistsByYear } from "@/hooks/useCollaborationData";
+import { createChords } from "@/components/ChordDiagram/ChordHelper";
 
 export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
   // Debug info
   console.log("OverviewTab - globalArtists:", globalArtists);
   console.log("OverviewTab - collaborationData:", collaborationData);
+
+  // Filter artists by the selected year range (your existing logic)
   const filteredArtists = useMemo(
     () => filterArtistsByYear(globalArtists, yearRange),
     [globalArtists, yearRange],
   );
+
+  // Build a simple genre map from globalArtists: { artistName -> main genre }
+  const genreMap = useMemo(() => {
+    if (!globalArtists) return {};
+    const map = {};
+    globalArtists.forEach((artist) => {
+      // choose a main genre string; adjust if you want multiple
+      const mainGenre =
+        artist.genres && artist.genres.length > 0
+          ? artist.genres[0]
+          : "Not Specified";
+      map[artist.name] = mainGenre;
+    });
+    return map;
+  }, [globalArtists]);
+
+  // Use your first-script logic (createChords) to turn collaborationData
+  // into nodes + links for the ChordDiagram
+  const { nodes, links } = useMemo(() => {
+    if (!collaborationData || collaborationData.length === 0) {
+      return { nodes: [], links: [] };
+    }
+    return createChords(collaborationData, genreMap);
+  }, [collaborationData, genreMap]);
+
+  const hasChordData = nodes.length > 0 && links.length > 0;
 
   return (
     <div className="space-y-6">
@@ -18,12 +47,17 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
         <p>
           <strong>Debug Info:</strong>
         </p>
-        <p>Global Artists: {globalArtists ? globalArtists.length : "Loading..."}</p>
+        <p>
+          Global Artists:{" "}
+          {globalArtists ? globalArtists.length : "Loading..."}
+        </p>
         <p>Artists in Range: {filteredArtists.length}</p>
         <p>
           Collaborations:{" "}
           {collaborationData ? collaborationData.length : "None"}
         </p>
+        <p>Chord Nodes: {nodes.length}</p>
+        <p>Chord Links: {links.length}</p>
       </div>
 
       {/* Chord Diagram */}
@@ -35,8 +69,9 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           This chord diagram shows potential collaborations between top artists
           based on genre similarities and popularity patterns.
         </p>
-        {collaborationData && collaborationData.length > 0 ? (
-          <ChordDiagram data={collaborationData} width={1100} height={700} />
+
+        {hasChordData ? (
+          <ChordDiagram nodes={nodes} links={links} width={1100} height={700} />
         ) : (
           <div className="h-[400px] flex items-center justify-center text-gray-500">
             {globalArtists
@@ -71,6 +106,7 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           </div>
         </div>
       )}
+
       {/* Show message if no data */}
       {(!globalArtists || globalArtists.length === 0) && (
         <div className="bg-gray-900 p-6 rounded-lg">
@@ -83,6 +119,7 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
           </p>
         </div>
       )}
+
       {/* No artists match year range */}
       {globalArtists &&
         globalArtists.length > 0 &&

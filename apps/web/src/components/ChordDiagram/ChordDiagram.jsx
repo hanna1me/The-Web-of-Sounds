@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
+import * as d3 from "d3";
 
-export function ChordDiagram({ data, width = 600, height = 600 }) {
+export function ChordDiagram({ nodes, links, width = 700, height = 700 }) {
   const svgRef = useRef(null);
   const tooltipRef = useRef(null);
 
@@ -10,7 +11,8 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
     const container = svg.parentElement;
     if (!container) return;
 
-    if (!data || data.length === 0) {
+    // No data → clear + cleanup tooltip
+    if (!nodes || !links || nodes.length === 0 || links.length === 0) {
       svg.innerHTML = "";
       if (tooltipRef.current && tooltipRef.current.parentElement === container) {
         container.removeChild(tooltipRef.current);
@@ -19,7 +21,10 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       return;
     }
 
+    // Clear previous render
     svg.innerHTML = "";
+
+    // Tooltip setup (script-2 style)
     let tooltipEl = tooltipRef.current;
     if (!tooltipEl) {
       tooltipEl = document.createElement("div");
@@ -37,41 +42,50 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
     tooltipEl.style.whiteSpace = "pre-line";
     tooltipEl.style.display = "none";
     container.style.position = "relative";
-    container.appendChild(tooltipEl);
+    if (!tooltipEl.parentElement) {
+      container.appendChild(tooltipEl);
+    }
+
     const cleanupFns = [];
 
-    const radius = Math.min(width, height) / 2 - 40;
+    const radius = Math.min(width, height) / 2 - 60;
     const centerX = width / 2;
     const centerY = height / 2;
 
-    // Create matrix for chord diagram
-    const artists = [
-      ...new Set([...data.map((d) => d.source), ...data.map((d) => d.target)]),
-    ];
-    const matrix = Array(artists.length)
-      .fill(0)
-      .map(() => Array(artists.length).fill(0));
+    // ==== DATA PREP (from script 1 logic) ====
 
-    data.forEach(({ source, target, value }) => {
-      const sourceIndex = artists.indexOf(source);
-      const targetIndex = artists.indexOf(target);
-      matrix[sourceIndex][targetIndex] = value;
-      matrix[targetIndex][sourceIndex] = value;
-    });
+    const artistNames = nodes.map((d) => d.name);
 
-    // Calculate angles for each artist
-    const angleStep = (2 * Math.PI) / artists.length;
-    const colors = artists.map(
-      (_, i) => `hsl(${(i * 360) / artists.length}, 70%, 60%)`,
+    // Color by genre (like script 1)
+    const genreScale = d3
+      .scaleOrdinal(d3.schemePaired)
+      .domain([...new Set(nodes.map((d) => d.genre))]);
+
+    const artistColorMap = new Map(
+      nodes.map((d) => [d.name, genreScale(d.genre || "Not Specified")]),
     );
 
-    // Draw outer circle and labels
-    artists.forEach((artist, i) => {
+    // Aggregate counts per pair for line thickness
+    const pairCount = new Map();
+    links.forEach((l) => {
+      const key =
+        l.source < l.target
+          ? `${l.source}|||${l.target}`
+          : `${l.target}|||${l.source}`;
+      pairCount.set(key, (pairCount.get(key) || 0) + 1);
+    });
+
+    const angleStep = (2 * Math.PI) / artistNames.length;
+
+    // ==== ARTIST DOTS + LABELS (visual like script 2) ====
+    artistNames.forEach((artist, i) => {
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
 
-      // Artist dot
+      const color = artistColorMap.get(artist) || "#9CA3AF";
+
+      // Dot
       const dot = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "circle",
@@ -79,12 +93,12 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       dot.setAttribute("cx", x);
       dot.setAttribute("cy", y);
       dot.setAttribute("r", "6");
-      dot.setAttribute("fill", colors[i]);
+      dot.setAttribute("fill", color);
       dot.setAttribute("stroke", "white");
       dot.setAttribute("stroke-width", "2");
       svg.appendChild(dot);
 
-      // Artist label
+      // Label
       const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text",
@@ -101,15 +115,20 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       text.setAttribute("dominant-baseline", "middle");
       text.setAttribute("font-size", "10");
       text.setAttribute("fill", "white");
-      text.textContent =
-        artist.length > 15 ? artist.substring(0, 12) + "..." : artist;
+
+      const labelText =
+        artist.length > 18 ? artist.substring(0, 15) + "..." : artist;
+      text.textContent = labelText;
       svg.appendChild(text);
     });
 
-    // Draw connections
-    data.forEach(({ source, target, value, year, genres, song }) => {
-      const sourceIndex = artists.indexOf(source);
-      const targetIndex = artists.indexOf(target);
+    // ==== CONNECTIONS (curved paths + tooltip) ====
+    links.forEach((link) => {
+      const { source, target, track, genre, targetGenre } = link;
+
+      const sourceIndex = artistNames.indexOf(source);
+      const targetIndex = artistNames.indexOf(target);
+      if (sourceIndex === -1 || targetIndex === -1) return;
 
       const sourceAngle = sourceIndex * angleStep - Math.PI / 2;
       const targetAngle = targetIndex * angleStep - Math.PI / 2;
@@ -119,35 +138,39 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
       const targetX = centerX + radius * Math.cos(targetAngle);
       const targetY = centerY + radius * Math.sin(targetAngle);
 
-      // Create curved path
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "path",
       );
       const midX = centerX;
       const midY = centerY;
-
       const d = `M ${sourceX} ${sourceY} Q ${midX} ${midY} ${targetX} ${targetY}`;
       path.setAttribute("d", d);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", colors[sourceIndex]);
-      path.setAttribute("stroke-width", Math.max(1, value / 2));
+      path.setAttribute(
+        "stroke",
+        artistColorMap.get(source) || artistColorMap.get(target) || "#6B7280",
+      );
+
+      const key =
+        source < target ? `${source}|||${target}` : `${target}|||${source}`;
+      const value = pairCount.get(key) || 1;
+
+      path.setAttribute("stroke-width", Math.max(1, value * 0.7));
       path.setAttribute("opacity", "0.6");
       path.setAttribute("class", "chord-connection");
 
-      const genreText = genres?.length ? genres.join(", ") : "Similar genre";
-      const releaseYear = song?.releaseYear || year;
-      const yearText = releaseYear ? `Year: ${releaseYear}` : "Year: Various";
-      const songText = song?.title
-        ? `Song: ${song.title}`
-        : "Song: Collaborative session";
-      const tooltipContent = `${source} ↔ ${target}\n${songText}\n${yearText}\nShared genres: ${genreText}`;
+      const tooltipContent = `${source} ↔ ${target}
+Track: ${track || "Unknown track"}
+Source genre: ${genre || "Not specified"}
+Target genre: ${targetGenre || "Not specified"}`;
 
       const updateTooltipPosition = (event) => {
         const rect = container.getBoundingClientRect();
         tooltipEl.style.left = `${event.clientX - rect.left + 12}px`;
         tooltipEl.style.top = `${event.clientY - rect.top + 12}px`;
       };
+
       const handleEnter = (event) => {
         path.setAttribute("opacity", "1");
         path.setAttribute("stroke-width", Math.max(2, value));
@@ -155,12 +178,14 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
         tooltipEl.style.display = "block";
         updateTooltipPosition(event);
       };
+
       const handleMove = (event) => {
         updateTooltipPosition(event);
       };
+
       const handleLeave = () => {
         path.setAttribute("opacity", "0.6");
-        path.setAttribute("stroke-width", Math.max(1, value / 2));
+        path.setAttribute("stroke-width", Math.max(1, value * 0.7));
         tooltipEl.style.display = "none";
       };
 
@@ -176,6 +201,7 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
 
       svg.appendChild(path);
     });
+
     return () => {
       cleanupFns.forEach((fn) => fn());
       if (tooltipEl && tooltipEl.parentElement === container) {
@@ -183,7 +209,7 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
         tooltipRef.current = null;
       }
     };
-  }, [data, width, height]);
+  }, [nodes, links, width, height]);
 
   return (
     <div className="relative flex justify-center">
@@ -192,7 +218,8 @@ export function ChordDiagram({ data, width = 600, height = 600 }) {
         width={width}
         height={height}
         className="border border-gray-700 rounded-lg bg-gray-800"
-      ></svg>
+      />
     </div>
   );
 }
+

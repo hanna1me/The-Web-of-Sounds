@@ -344,30 +344,54 @@ export function useSpotifyData(spotifyToken) {
       queryKey: ["artist", selectedArtist],
       queryFn: async () => {
         if (!selectedArtist || !spotifyToken) return null;
-        const [artistResponse, albumsResponse, relatedResponse] =
-          await Promise.all([
-            fetch(`https://api.spotify.com/v1/artists/${selectedArtist}`, {
+
+        const [
+          artistResponse,
+          albumsResponse,
+          relatedResponse,
+          topTracksResponse,
+        ] = await Promise.all([
+          fetch(`https://api.spotify.com/v1/artists/${selectedArtist}`, {
+            headers: { Authorization: `Bearer ${spotifyToken}` },
+          }),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/albums?limit=50`,
+            {
               headers: { Authorization: `Bearer ${spotifyToken}` },
-            }),
-            fetch(
-              `https://api.spotify.com/v1/artists/${selectedArtist}/albums?limit=50`,
-              {
-                headers: { Authorization: `Bearer ${spotifyToken}` },
-              },
-            ),
-            fetch(
-              `https://api.spotify.com/v1/artists/${selectedArtist}/related-artists`,
-              {
-                headers: { Authorization: `Bearer ${spotifyToken}` },
-              },
-            ),
-          ]);
+            },
+          ),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/related-artists`,
+            {
+              headers: { Authorization: `Bearer ${spotifyToken}` },
+            },
+          ),
+          fetch(
+            `https://api.spotify.com/v1/artists/${selectedArtist}/top-tracks?market=US`,
+            {
+              headers: { Authorization: `Bearer ${spotifyToken}` },
+            },
+          ),
+        ]);
 
-        const artist = await artistResponse.json();
-        const albums = await albumsResponse.json();
-        const related = await relatedResponse.json();
+        const [artist, albums, related, topTracksRaw] = await Promise.all([
+          artistResponse.json(),
+          albumsResponse.json(),
+          relatedResponse.json(),
+          topTracksResponse.ok ? topTracksResponse.json() : Promise.resolve({}),
+        ]);
 
-        return { artist, albums, related };
+        const topTracks = Array.isArray(topTracksRaw.tracks)
+          ? topTracksRaw.tracks.map((track) => ({
+              name: track.name,
+              popularity: track.popularity,
+              duration_min: track.duration_ms
+                ? Number((track.duration_ms / 60000).toFixed(2))
+                : null,
+            }))
+          : [];
+
+        return { artist, albums, related, topTracks };
       },
       enabled: !!spotifyToken && !!selectedArtist,
     });

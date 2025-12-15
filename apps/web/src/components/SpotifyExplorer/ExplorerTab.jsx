@@ -2,6 +2,7 @@ import { GenreDistribution } from "./GenreDistribution";
 import { AlbumTimeline } from "./AlbumTimeline";
 import { ArtistStats } from "./ArtistStats";
 import { CompareSection } from "./CompareSection";
+import { TopTracksChart } from "./TopTracksChart";
 
 export function ExplorerTab({
   pieData,
@@ -27,6 +28,11 @@ export function ExplorerTab({
         addToCompare={addToCompare}
         compareItems={compareItems}
       />
+
+      {/* Top Tracks Vega-Lite Chart */}
+      {artistData?.topTracks && artistData.topTracks.length > 0 && (
+        <TopTracksChart topTracks={artistData.topTracks} />
+      )}
 
       {/* Compare Section */}
       <CompareSection
