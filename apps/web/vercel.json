@@ -1,10 +1,8 @@
 {
-  "framework": "react-router",
   "outputDirectory": "build/client",
-  "redirects": [
-    { "source": "/index.html", "destination": "/", "permanent": true }
-  ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/index.html", "status": 308, "headers": { "Location": "/" } },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
