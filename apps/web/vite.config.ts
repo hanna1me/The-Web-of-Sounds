@@ -1,9 +1,12 @@
 import path from "node:path";
-import { reactRouter } from "@react-router/dev/vite";
-import { reactRouterHonoServer } from "react-router-hono-server/dev";
 import { defineConfig } from "vite";
 import babel from "vite-plugin-babel";
 import tsconfigPaths from "vite-tsconfig-paths";
+
+import { reactRouter } from "@react-router/dev/vite";
+import { reactRouterHonoServer } from "react-router-hono-server/dev";
+import { vercelPreset } from "@vercel/react-router/vite";
+
 import { addRenderIds } from "./plugins/addRenderIds";
 import { aliases } from "./plugins/aliases";
 import consoleToParent from "./plugins/console-to-parent";
@@ -13,13 +16,13 @@ import { nextPublicProcessEnv } from "./plugins/nextPublicProcessEnv";
 import { restart } from "./plugins/restart";
 import { restartEnvFileChange } from "./plugins/restartEnvFileChange";
 
-export default defineConfig(({ command }) => {
-  const isDev = command === "serve";
+export default defineConfig(({ mode }) => {
+  const isDev = mode === "development";
 
   return {
     envPrefix: "NEXT_PUBLIC_",
     optimizeDeps: {
-      include: ["fast-glob", "lucide-react", "d3"],
+      include: ["fast-glob", "lucide-react"],
       exclude: [
         "@hono/auth-js/react",
         "@hono/auth-js",
@@ -35,15 +38,14 @@ export default defineConfig(({ command }) => {
       nextPublicProcessEnv(),
       restartEnvFileChange(),
 
-      // ✅ DEV ONLY (this is what was blowing up your Vercel build)
-      ...(isDev
-        ? [
-            reactRouterHonoServer({
-              serverEntryPoint: "./__create/index.ts",
-              runtime: "node",
-            }),
-          ]
-        : []),
+      // ✅ This is what your Vercel logs complain is missing
+      vercelPreset(),
+
+      // ✅ Keep your server integration (Auth/API/etc.)
+      reactRouterHonoServer({
+        serverEntryPoint: "./__create/index.ts",
+        runtime: "node",
+      }),
 
       babel({
         include: ["src/**/*.{js,jsx,ts,tsx}"],
@@ -69,7 +71,10 @@ export default defineConfig(({ command }) => {
       consoleToParent(),
       loadFontsFromTailwindSource(),
       addRenderIds(),
+
+      // React Router Vite plugin
       reactRouter(),
+
       tsconfigPaths(),
       aliases(),
       layoutWrapperPlugin(),
@@ -94,12 +99,6 @@ export default defineConfig(({ command }) => {
       warmup: {
         clientFiles: ["./src/app/**/*", "./src/app/root.tsx", "./src/app/routes.ts"],
       },
-    },
-    build: {
-      target: "es2022",
-    },
-    ssr: {
-      noExternal: ["d3"],
     },
   };
 });
