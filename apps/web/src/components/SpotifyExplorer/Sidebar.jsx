@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
+
 export function Sidebar({
   expandedSidebar,
   setExpandedSidebar,
@@ -12,28 +14,64 @@ export function Sidebar({
   collaborationData,
 }) {
   return (
-    <div
-      className={`${expandedSidebar ? "w-80" : "w-16"} bg-gray-900 p-4 transition-all duration-300`}
+    <aside
+      className="flex-shrink-0 flex flex-col transition-all duration-300 overflow-hidden"
+      style={{
+        width: expandedSidebar ? "288px" : "56px",
+        borderRight: "1px solid rgba(0,0,0,0.08)",
+        background: "rgba(64,0,116,0.02)",
+      }}
     >
-      {activeTab === "explorer" && "overview" && (
+      {/* Toggle button */}
       <button
         onClick={() => setExpandedSidebar(!expandedSidebar)}
-        className="w-full mb-4 p-2 bg-gray-800 rounded hover:bg-gray-700 transition-colors"
+        className="flex-shrink-0 flex items-center justify-center h-12 transition-colors"
+        style={{
+          borderBottom: "1px solid rgba(0,0,0,0.08)",
+          color: "#400074",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "rgba(64,0,116,0.06)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "transparent";
+        }}
+        title={expandedSidebar ? "Collapse sidebar" : "Expand sidebar"}
       >
-        {expandedSidebar ? "Collapse" : "Menu"}
+        {expandedSidebar ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
+
+      {/* Collapsed icon hints */}
+      {!expandedSidebar && (
+        <div className="flex flex-col items-center gap-4 pt-5">
+          <div title="Year range" style={{ color: "#400074", opacity: 0.5 }}>
+            <SlidersHorizontal size={16} />
+          </div>
+          {activeTab === "explorer" && (
+            <div title="Artist search" style={{ color: "#400074", opacity: 0.5 }}>
+              <Search size={16} />
+            </div>
+          )}
+        </div>
       )}
 
+      {/* Expanded content */}
       {expandedSidebar && (
-        <div>
+        <div className="flex flex-col gap-6 p-4 overflow-y-auto flex-1">
           {/* Year Range */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-green-400">
-              Year Range
-            </h3>
-            <div className="space-y-2">
-              <label className="block">
-                <span className="text-sm">From: {yearRange[0]}</span>
+          <section className="flex flex-col gap-3">
+            <p className="section-heading">Year Range</p>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium" style={{ color: "#6b7280" }}>From</span>
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                    style={{ background: "#400074", color: "#ffffff" }}
+                  >
+                    {yearRange[0]}
+                  </span>
+                </div>
                 <input
                   type="range"
                   min="2000"
@@ -42,11 +80,19 @@ export function Sidebar({
                   onChange={(e) =>
                     setYearRange([parseInt(e.target.value), yearRange[1]])
                   }
-                  className="w-full mt-1"
+                  className="w-full"
                 />
-              </label>
-              <label className="block">
-                <span className="text-sm">To: {yearRange[1]}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium" style={{ color: "#6b7280" }}>To</span>
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                    style={{ background: "#400074", color: "#ffffff" }}
+                  >
+                    {yearRange[1]}
+                  </span>
+                </div>
                 <input
                   type="range"
                   min="2000"
@@ -55,28 +101,54 @@ export function Sidebar({
                   onChange={(e) =>
                     setYearRange([yearRange[0], parseInt(e.target.value)])
                   }
-                  className="w-full mt-1"
+                  className="w-full"
                 />
-              </label>
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Artist Search - Only show in explorer tab */}
+          {/* Artist Search - Explorer tab */}
           {activeTab === "explorer" && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3 text-green-400">
-                Artist Search
-              </h3>
-              <input
-                type="text"
-                placeholder="Search for an artist..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-2 bg-gray-800 rounded border border-gray-700 focus:border-green-400 focus:outline-none"
-              />
+            <section className="flex flex-col gap-3">
+              <p className="section-heading">Artist Search</p>
+              <div className="relative">
+                <Search
+                  size={13}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{ color: "#400074", opacity: 0.5 }}
+                />
+                <input
+                  type="text"
+                  placeholder="Search artists…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-2.5 rounded-xl text-sm transition-all"
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid rgba(0,0,0,0.1)",
+                    color: "#000000",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                  }}
+                  onFocus={e => {
+                    e.currentTarget.style.border = "1px solid rgba(64,0,116,0.5)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(64,0,116,0.1)";
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.border = "1px solid rgba(0,0,0,0.1)";
+                    e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+                  }}
+                />
+              </div>
 
-              {searchResults?.artists?.items && (
-                <div className="mt-2 max-h-48 overflow-y-auto bg-gray-800 rounded border border-gray-700">
+              {searchResults?.artists?.items?.length > 0 && (
+                <div
+                  className="flex flex-col rounded-xl overflow-hidden max-h-52 overflow-y-auto"
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid rgba(64,0,116,0.12)",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  }}
+                >
                   {searchResults.artists.items.map((artist) => (
                     <button
                       key={artist.id}
@@ -84,38 +156,27 @@ export function Sidebar({
                         setSelectedArtist(artist.id);
                         setSearchQuery("");
                       }}
-                      className="w-full p-2 text-left hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                      className="flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors"
+                      style={{ color: "#000000" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "rgba(64,0,116,0.06)"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     >
                       <img
                         src={artist.images[0]?.url || "/api/placeholder/32/32"}
                         alt={artist.name}
-                        className="w-8 h-8 rounded"
+                        className="w-7 h-7 rounded-full flex-shrink-0 object-cover"
+                        style={{ border: "1px solid rgba(64,0,116,0.15)" }}
                       />
                       <span className="truncate">{artist.name}</span>
                     </button>
                   ))}
                 </div>
               )}
-            </div>
+            </section>
           )}
 
-          {/* Overview Stats */}
-          {activeTab === "overview" && globalArtists && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3 text-green-400">
-                Overview Stats
-              </h3>
-              <div className="space-y-2 text-sm">
-                <p>Artists: {globalArtists.length}</p>
-                <p>Collaborations: {collaborationData.length}</p>
-                <p>
-                  Time Period: {yearRange[0]} - {yearRange[1]}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       )}
-    </div>
+    </aside>
   );
 }

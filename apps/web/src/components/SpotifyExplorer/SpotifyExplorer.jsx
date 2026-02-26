@@ -8,15 +8,12 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { OverviewTab } from "./OverviewTab";
 import { ExplorerTab } from "./ExplorerTab";
+import { TokenSettingsModal } from "./TokenSettingsModal";
 
 export function SpotifyExplorer() {
   const [spotifyToken, setSpotifyToken] = useState(() => {
     const envToken = import.meta.env.VITE_SPOTIFY_TOKEN || "";
-
-    if (typeof window === "undefined") {
-      return envToken;
-    }
-
+    if (typeof window === "undefined") return envToken;
     return window.localStorage.getItem("spotifyToken") || envToken;
   });
   const [yearRange, setYearRange] = useState([2020, 2024]);
@@ -25,10 +22,10 @@ export function SpotifyExplorer() {
   const [compareItems, setCompareItems] = useState([]);
   const [expandedSidebar, setExpandedSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     if (spotifyToken) {
       window.localStorage.setItem("spotifyToken", spotifyToken);
     } else {
@@ -69,42 +66,15 @@ export function SpotifyExplorer() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="bg-gray-900 border-b border-gray-800 p-4">
-        <div className="max-w-5xl space-y-2">
-          <label className="text-sm text-gray-300 font-medium">
-            Spotify access token
-          </label>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <input
-              type="text"
-              value={spotifyToken}
-              onChange={(event) => setSpotifyToken(event.target.value)}
-              placeholder="Paste a short-lived Spotify access token to fetch live data"
-              className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-green-500 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setSpotifyToken("")}
-              className="self-start rounded-md border border-gray-700 px-3 py-2 text-sm text-gray-200 transition hover:border-red-400 hover:text-red-300"
-            >
-              Clear token
-            </button>
-          </div>
-          <p className="text-xs text-gray-400">
-            Spotify tokens expire frequently. Paste a fresh token to enable live API
-            requests. {spotifyToken
-              ? "The token is stored locally for this browser session."
-              : "Fallback demo data is shown until a token is provided."}
-          </p>
-        </div>
-      </div>
-      {/* Header */}
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className="min-h-screen flex flex-col" style={{ background: "#ffffff" }}>
+      <Header
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenSettings={() => setShowSettings(true)}
+        hasToken={!!spotifyToken}
+      />
 
-      {/* Main Content */}
-      <div className="flex">
-        {/* Sidebar */}
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar
           expandedSidebar={expandedSidebar}
           setExpandedSidebar={setExpandedSidebar}
@@ -119,8 +89,7 @@ export function SpotifyExplorer() {
           collaborationData={collaborationData}
         />
 
-        {/* Main Content Area */}
-        <div className="flex-1 p-6">
+        <main className="flex-1 p-6 overflow-y-auto">
           {activeTab === "overview" && (
             <OverviewTab
               collaborationData={collaborationData}
@@ -128,7 +97,6 @@ export function SpotifyExplorer() {
               globalArtists={globalArtists}
             />
           )}
-
           {activeTab === "explorer" && (
             <ExplorerTab
               pieData={pieData}
@@ -139,7 +107,58 @@ export function SpotifyExplorer() {
               removeFromCompare={removeFromCompare}
             />
           )}
-        </div>
+          {activeTab === "about" && <AboutTab />}
+        </main>
+      </div>
+
+      {showSettings && (
+        <TokenSettingsModal
+          token={spotifyToken}
+          setToken={setSpotifyToken}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AboutTab() {
+  return (
+    <div className="max-w-2xl mx-auto py-8 flex flex-col gap-6">
+      <div className="glass p-6 flex flex-col gap-3">
+        <h2 className="text-xl font-semibold" style={{ color: "#400074" }}>
+          About This Project
+        </h2>
+        <p style={{ color: "#6b7280", lineHeight: "1.7" }}>
+          <strong style={{ color: "#000000" }}>The Web of Sounds</strong> is a data visualization
+          project built for COMP 435. It explores the connections between artists through their
+          collaborative work, genre relationships, and discographies using live Spotify data.
+        </p>
+        <p style={{ color: "#6b7280", lineHeight: "1.7" }}>
+          Built by <strong style={{ color: "#000000" }}>Hanna Chang</strong> and{" "}
+          <strong style={{ color: "#000000" }}>Joshua Segebre</strong>.
+        </p>
+      </div>
+      <div className="glass p-6 flex flex-col gap-4">
+        <h3 className="font-semibold" style={{ color: "#000000" }}>How to use</h3>
+        <ul className="flex flex-col gap-3" style={{ color: "#6b7280" }}>
+          {[
+            ["⚙ Settings icon", "Paste a Spotify access token from developer.spotify.com."],
+            ["Overview tab", "See a chord diagram of artist collaboration networks filtered by year."],
+            ["Explorer tab", "Search any artist to inspect genres, album timeline, and top tracks."],
+            ["Sidebar sliders", "Filter all data by year range."],
+          ].map(([key, val]) => (
+            <li key={key} className="flex gap-3">
+              <span
+                className="flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-md h-fit mt-0.5"
+                style={{ background: "rgba(64,0,116,0.08)", color: "#400074", border: "1px solid rgba(64,0,116,0.18)" }}
+              >
+                {key}
+              </span>
+              <span>{val}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

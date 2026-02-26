@@ -7,16 +7,16 @@ export function TopTracksChart({ topTracks = [] }) {
   const [containerWidth, setContainerWidth] = useState(600);
 
   useEffect(() => {
-    const measure = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      const w = Math.floor(el.getBoundingClientRect().width);
-      if (w > 0) setContainerWidth(w);
-    };
+    const el = containerRef.current;
+    if (!el) return;
 
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    const observer = new ResizeObserver((entries) => {
+      const w = Math.floor(entries[0].contentRect.width);
+      if (w > 0) setContainerWidth(w);
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -32,36 +32,39 @@ export function TopTracksChart({ topTracks = [] }) {
     const renderChart = async () => {
       try {
         const chart = vl
-          .markBar({ cornerRadiusEnd: 4 })
+          .markBar({ cornerRadiusEnd: 5 })
           .data(topTracks)
           .encode(
             vl
               .y()
               .fieldN("name")
-              .title("Track")
+              .title(null)
               .sort("-x")
               .axis({
-                labelColor: "#9CA3AF",
-                titleColor: "#9CA3AF",
-                domainColor: "#374151",
-                tickColor: "#374151",
+                labelColor: "#6b7280",
+                titleColor: "#6b7280",
+                domainColor: "rgba(0,0,0,0.08)",
+                tickColor: "transparent",
                 grid: false,
                 labelLimit: 220,
+                labelFontSize: 14,
               }),
             vl
               .x()
               .fieldQ("popularity")
-              .title("Popularity")
+              .title("Popularity score")
               .axis({
-                labelColor: "#9CA3AF",
-                titleColor: "#9CA3AF",
-                domainColor: "#374151",
-                tickColor: "#374151",
+                labelColor: "#9ca3af",
+                titleColor: "#9ca3af",
+                domainColor: "rgba(0,0,0,0.08)",
+                tickColor: "transparent",
                 grid: true,
-                gridColor: "#374151",
+                gridColor: "rgba(0,0,0,0.08)",
                 gridDash: [3, 3],
+                labelFontSize: 14,
+                titleFontSize: 13,
               }),
-            vl.color().value("#10B981"),
+            vl.color().value("#1DB954"),
             vl.tooltip([
               vl.fieldN("name"),
               vl.fieldQ("popularity"),
@@ -69,10 +72,12 @@ export function TopTracksChart({ topTracks = [] }) {
             ]),
           )
           .width(w)
-          .height({ step: 20 })
+          .height({ step: 22 })
           .config({
-            background: "#111827",
+            background: "transparent",
             view: { stroke: null },
+            bar: { opacity: 0.85 },
+            font: "Inter, system-ui, sans-serif",
           });
 
         element = await chart.render();
@@ -95,18 +100,22 @@ export function TopTracksChart({ topTracks = [] }) {
   const hasData = Array.isArray(topTracks) && topTracks.length > 0;
 
   return (
-    <div className="bg-gray-900 p-6 rounded-lg mb-6">
-      <h3 className="text-xl font-semibold mb-4 text-green-400">
-        Top Tracks Popularity
-      </h3>
+    <div className="glass card-hover p-6 mb-6 flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-1 h-5 rounded-full"
+          style={{ background: "#400074" }}
+        />
+        <h3 className="text-base font-semibold" style={{ color: "#000000" }}>Top Tracks</h3>
+      </div>
 
       {hasData ? (
-        <div ref={containerRef} className="w-full h-[300px] overflow-auto">
+        <div ref={containerRef} style={{ width: "100%", overflow: "hidden" }}>
           <div ref={chartRef} />
         </div>
       ) : (
-        <div className="h-[300px] flex items-center justify-center text-gray-500">
-          Select an artist (with a valid Spotify token) to see their top tracks.
+        <div className="h-[280px] flex items-center justify-center text-sm" style={{ color: "#9ca3af" }}>
+          Select an artist with a valid Spotify token to see top tracks.
         </div>
       )}
     </div>

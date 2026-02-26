@@ -58,7 +58,7 @@ export function D3ChordVisualization({
       .attr("x", 0)
       .attr("y", -size / 2 + 28)
       .attr("text-anchor", "middle")
-      .style("fill", "#E5E7EB")
+      .style("fill", "#000000")
       .style("font-size", "18px")
       .style("font-weight", 700);
 
@@ -83,7 +83,8 @@ export function D3ChordVisualization({
     const chord = d3.chord().padAngle(0.05).sortSubgroups(d3.descending);
     const chords = chord(matrix);
 
-    const color = () => "#1DB954";
+    const arcColor = () => "#400074";
+    const ribbonColor = () => "#CDF35F";
 
     // Tooltip
     const tooltip = d3
@@ -92,13 +93,14 @@ export function D3ChordVisualization({
       .attr("data-chord-tooltip", "true")
       .style("position", "absolute")
       .style("z-index", 1000)
-      .style("padding", "8px 10px")
-      .style("background", "rgba(17, 24, 39, 0.95)")
-      .style("color", "#F9FAFB")
-      .style("border", "1px solid rgba(255,255,255,0.08)")
+      .style("padding", "8px 12px")
+      .style("background", "#400074")
+      .style("color", "#ffffff")
+      .style("border", "none")
       .style("border-radius", "10px")
-      .style("font-size", "12px")
-      .style("box-shadow", "0 10px 20px rgba(0,0,0,0.35)")
+      .style("font-size", "14px")
+      .style("font-family", "Inter, system-ui, sans-serif")
+      .style("box-shadow", "0 4px 24px rgba(0,0,0,0.2)")
       .style("pointer-events", "none")
       .style("opacity", 0);
 
@@ -111,9 +113,9 @@ export function D3ChordVisualization({
 
     const arcPaths = group
       .append("path")
-      .attr("fill", (d) => color(nodes[d.index]?.genre))
-      .attr("stroke", "#0B1220")
-      .attr("stroke-width", 1)
+      .attr("fill", (d) => arcColor(nodes[d.index]?.genre))
+      .attr("stroke", "transparent")
+      .attr("stroke-width", 0)
       .attr("d", d3.arc().innerRadius(innerRadius).outerRadius(outerRadius));
 
     // Labels and links
@@ -132,8 +134,8 @@ export function D3ChordVisualization({
         `
       )
       .attr("text-anchor", (d) => (d.angle > Math.PI ? "end" : "start"))
-      .style("fill", "#E5E7EB")
-      .style("font-size", "11px")
+      .style("fill", "#400074")
+      .style("font-size", "13px")
       .style("font-weight", 500)
       .style("pointer-events", "none")
       .each(function (d) {
@@ -165,8 +167,8 @@ export function D3ChordVisualization({
       .data(chords)
       .join("path")
       .attr("d", d3.ribbon().radius(innerRadius))
-      .style("fill", (d) => color(nodes[d.source.index]?.genre))
-      .style("stroke", "#111827")
+      .style("fill", (d) => ribbonColor(nodes[d.source.index]?.genre))
+      .style("stroke", "rgba(0,0,0,0.15)")
       .style("stroke-width", 0.5);
 
     // Ribbon tooltip and hover fade
@@ -188,8 +190,8 @@ export function D3ChordVisualization({
                 <div style="font-weight:600; margin-bottom:2px;">${sourceName} × ${targetName}</div>
                 ${
                     link?.track
-                    ? `<div style="color:#D1D5DB;">Track: <span style="color:#F9FAFB;">${link.track}</span></div>`
-                    : `<div style="color:#9CA3AF;">Shared collaborations</div>`
+                    ? `<div style="opacity:0.8;">Track: <span style="opacity:1;">${link.track}</span></div>`
+                    : `<div style="opacity:0.7;">Shared collaborations</div>`
                 }
             `);
 

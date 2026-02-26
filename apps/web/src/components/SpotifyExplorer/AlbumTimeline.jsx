@@ -8,33 +8,57 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const TOOLTIP_STYLE = {
+  backgroundColor: "#400074",
+  border: "none",
+  borderRadius: "10px",
+  color: "#ffffff",
+  fontSize: "14px",
+  fontFamily: "Inter, system-ui, sans-serif",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+};
+
 export function AlbumTimeline({ chartData }) {
   return (
-    <div className="bg-gray-900 p-6 rounded-lg">
-      <h3 className="text-xl font-semibold mb-4 text-green-400">
-        Album Releases Timeline
-      </h3>
+    <div className="glass card-hover p-6 flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-1 h-5 rounded-full"
+          style={{ background: "#400074" }}
+        />
+        <h3 className="text-base font-semibold" style={{ color: "#000000" }}>Album Releases</h3>
+      </div>
+
       {chartData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="year" stroke="#9CA3AF" />
-            <YAxis dataKey="albums" stroke="#9CA3AF" label="Albums" labelAngle={-90}
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={chartData} barSize={14}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.07)" vertical={false} />
+            <XAxis
+              dataKey="year"
+              tick={{ fill: "#9ca3af", fontSize: 14 }}
+              axisLine={{ stroke: "rgba(0,0,0,0.08)" }}
+              tickLine={false}
             />
-            
+            <YAxis
+              dataKey="albums"
+              tick={{ fill: "#9ca3af", fontSize: 14 }}
+              axisLine={false}
+              tickLine={false}
+            />
             <Tooltip
-              cursor={false}
-              contentStyle={{
-                backgroundColor: "#1F2937",
-                border: "1px solid #374151",
-                borderRadius: "6px",
-              }}
+              cursor={{ fill: "rgba(64,0,116,0.05)" }}
+              contentStyle={TOOLTIP_STYLE}
             />
-            <Bar dataKey="albums" fill="#10B981" activeBar={false} />
+            <Bar
+              dataKey="albums"
+              fill="#1DB954"
+              radius={[4, 4, 0, 0]}
+              activeBar={{ fill: "#17a34a" }}
+            />
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <div className="h-[300px] flex items-center justify-center text-gray-500">
+        <div className="h-[280px] flex items-center justify-center text-sm" style={{ color: "#9ca3af" }}>
           Select an artist to see album timeline
         </div>
       )}
