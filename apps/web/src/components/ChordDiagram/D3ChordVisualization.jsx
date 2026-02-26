@@ -12,7 +12,7 @@ export function D3ChordVisualization({
   nodes = [],
   links = [],
   title = " ",
-  heightVh = 80,
+  heightVh = 100,
 }) {
   const hostRef = useRef(null);
 
@@ -31,8 +31,8 @@ export function D3ChordVisualization({
 
     // Measure container
     const rect = hostRef.current.getBoundingClientRect();
-    const containerW = Math.max(300, rect.width || 0);
-    const containerH = Math.max(300, rect.height || 0);
+    const containerW = Math.max(400, rect.width || 0);
+    const containerH = Math.max(400, rect.height || 0);
 
     // Use smaller dimension so the chord stays circular and fits
     const size = Math.min(containerW, containerH);
@@ -52,15 +52,15 @@ export function D3ChordVisualization({
       .style("font-family", "Inter, system-ui, sans-serif");
 
     // Title (might delete)
-    svg
-      .append("text")
-      .text(title)
-      .attr("x", 0)
-      .attr("y", -size / 2 + 28)
-      .attr("text-anchor", "middle")
-      .style("fill", "#000000")
-      .style("font-size", "18px")
-      .style("font-weight", 700);
+    // svg
+    //   .append("text")
+    //   .text(title)
+    //   .attr("x", 0)
+    //   .attr("y", -size / 2 + 28)
+    //   .attr("text-anchor", "middle")
+    //   .style("fill", "#000000")
+    //   .style("font-size", "18px")
+    //   .style("font-weight", 700);
 
     // Build index map and matrix
     const nodesToIndex = new Map(
@@ -84,7 +84,7 @@ export function D3ChordVisualization({
     const chords = chord(matrix);
 
     const arcColor = () => "#400074";
-    const ribbonColor = () => "#CDF35F";
+    const ribbonColor = () => "#1DB954";
 
     // Tooltip
     const tooltip = d3
@@ -135,7 +135,7 @@ export function D3ChordVisualization({
       )
       .attr("text-anchor", (d) => (d.angle > Math.PI ? "end" : "start"))
       .style("fill", "#400074")
-      .style("font-size", "13px")
+      .style("font-size", "15px")
       .style("font-weight", 500)
       .style("pointer-events", "none")
       .each(function (d) {
@@ -143,10 +143,30 @@ export function D3ChordVisualization({
         const raw = nodes[d.index]?.name ?? "";
         const name = nameMap.get(raw) ?? raw;
 
-        const maxLength = 17;
-        const lines = [];
-        for (let i = 0; i < name.length; i += maxLength) {
-          lines.push(name.slice(i, i + maxLength));
+        // Word-aware wrapping: 1 line if short, else 2 balanced lines max
+        const MAX = 13;
+        let lines;
+        if (name.length <= MAX) {
+          lines = [name];
+        } else {
+          const words = name.split(" ");
+          if (words.length === 1) {
+            // Single long word — hyphenate at midpoint
+            const mid = Math.ceil(name.length / 2);
+            lines = [name.slice(0, mid) + "-", name.slice(mid)];
+          } else {
+            // Find split that minimizes the longer of the two lines
+            let bestSplit = 1;
+            let bestScore = Infinity;
+            for (let i = 1; i < words.length; i++) {
+              const score = Math.max(
+                words.slice(0, i).join(" ").length,
+                words.slice(i).join(" ").length
+              );
+              if (score < bestScore) { bestScore = score; bestSplit = i; }
+            }
+            lines = [words.slice(0, bestSplit).join(" "), words.slice(bestSplit).join(" ")];
+          }
         }
 
         const text = d3.select(this);
@@ -162,13 +182,13 @@ export function D3ChordVisualization({
     // Link ribbons (keep reference for hover fades)
     const ribbons = svg
       .append("g")
-      .attr("fill-opacity", 0.6)
+      .attr("fill-opacity", 0.8)
       .selectAll("path")
       .data(chords)
       .join("path")
       .attr("d", d3.ribbon().radius(innerRadius))
       .style("fill", (d) => ribbonColor(nodes[d.source.index]?.genre))
-      .style("stroke", "rgba(0,0,0,0.15)")
+      .style("stroke", "rgba(0,0,0,0.08)")
       .style("stroke-width", 0.5);
 
     // Ribbon tooltip and hover fade

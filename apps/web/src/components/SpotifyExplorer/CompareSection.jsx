@@ -18,11 +18,11 @@ export function CompareSection({ compareItems, removeFromCompare }) {
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {compareItems.map((item, index) => (
           <div
             key={item.id}
-            className="card-hover relative flex flex-col items-center gap-3 p-5 rounded-xl"
+            className="card-hover relative flex flex-col items-center gap-2 p-3 rounded-xl"
             style={{
               background: "#ffffff",
               border: "1px solid rgba(64,0,116,0.15)",
@@ -46,15 +46,15 @@ export function CompareSection({ compareItems, removeFromCompare }) {
             </button>
 
             <img
-              src={item.image || "/api/placeholder/64/64"}
+              src={item.image || "/api/placeholder/40/40"}
               alt={item.name}
-              className="w-16 h-16 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-cover"
               style={{
                 border: "2px solid rgba(64,0,116,0.25)",
-                boxShadow: "0 0 12px rgba(64,0,116,0.1)",
+                boxShadow: "0 0 8px rgba(64,0,116,0.1)",
               }}
             />
-            <h4 className="font-semibold text-center text-sm leading-tight" style={{ color: "#000000" }}>
+            <h4 className="font-semibold text-center text-xs leading-tight" style={{ color: "#000000" }}>
               {item.name}
             </h4>
 
@@ -101,17 +101,17 @@ export function CompareSection({ compareItems, removeFromCompare }) {
         {Array.from({ length: 3 - compareItems.length }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl min-h-[200px]"
+            className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl min-h-[130px]"
             style={{
               border: "1.5px dashed rgba(64,0,116,0.2)",
               background: "rgba(64,0,116,0.02)",
             }}
           >
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-7 h-7 rounded-full flex items-center justify-center"
               style={{ background: "rgba(64,0,116,0.06)" }}
             >
-              <Users size={16} style={{ color: "rgba(64,0,116,0.3)" }} />
+              <Users size={12} style={{ color: "rgba(64,0,116,0.3)" }} />
             </div>
             <span className="text-xs" style={{ color: "#9ca3af" }}>
               Empty slot {compareItems.length + i + 1}

@@ -22,11 +22,12 @@ export function Header({ activeTab, setActiveTab, onOpenSettings, hasToken }) {
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              fontFamily: "'Inter', system-ui, sans-serif",
             }}
           >
             The Web of Sounds
           </h1>
-          <p className="text-sm" style={{ color: "#6b7280" }}>
+          <p className="text-sm" style={{ color: "#6b7280", fontFamily: "'Inter', system-ui, sans-serif" }}>
             Artist Collaboration Explorer &nbsp;·&nbsp; by Hanna Chang &amp; Joshua Segebre
           </p>
         </div>
@@ -35,8 +36,11 @@ export function Header({ activeTab, setActiveTab, onOpenSettings, hasToken }) {
         <button
           onClick={onOpenSettings}
           title="Spotify API settings"
-          className="relative flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
+          className="relative flex-shrink-0 flex items-center justify-center transition-all duration-150"
           style={{
+            width: 50,
+            height: 50,
+            borderRadius: "50%",
             background: hasToken ? "rgba(64,0,116,0.1)" : "rgba(0,0,0,0.04)",
             border: hasToken ? "1px solid rgba(64,0,116,0.25)" : "1px solid rgba(0,0,0,0.08)",
             color: hasToken ? "#400074" : "#6b7280",
@@ -48,7 +52,7 @@ export function Header({ activeTab, setActiveTab, onOpenSettings, hasToken }) {
             e.currentTarget.style.background = hasToken ? "rgba(64,0,116,0.1)" : "rgba(0,0,0,0.04)";
           }}
         >
-          <Settings size={16} />
+          <Settings size={20} />
           {!hasToken && (
             <span
               className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
@@ -69,12 +73,14 @@ export function Header({ activeTab, setActiveTab, onOpenSettings, hasToken }) {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all duration-150"
               style={{
                 background: active ? "#400074" : "transparent",
                 color: active ? "#CDF35F" : "#6b7280",
                 border: "1px solid transparent",
                 boxShadow: active ? "0 2px 8px rgba(64,0,116,0.3)" : "none",
+                fontSize: "20pt",
+                fontFamily: "'Inter', system-ui, sans-serif",
               }}
               onMouseEnter={e => {
                 if (!active) {
@@ -89,7 +95,7 @@ export function Header({ activeTab, setActiveTab, onOpenSettings, hasToken }) {
                 }
               }}
             >
-              <Icon size={15} />
+              <Icon size={18} />
               {label}
             </button>
           );

@@ -26,7 +26,7 @@ export function GenreDistribution({ pieData = [] }) {
 
       {hasData ? (
         <ResponsiveContainer width="100%" height={280}>
-          <PieChart>
+          <PieChart style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             <Pie
               data={safePieData}
               dataKey="value"

@@ -31,17 +31,17 @@ export function AlbumTimeline({ chartData }) {
 
       {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData} barSize={14}>
+          <BarChart data={chartData} barSize={14} style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.07)" vertical={false} />
             <XAxis
               dataKey="year"
-              tick={{ fill: "#9ca3af", fontSize: 14 }}
+              tick={{ fill: "#9ca3af", fontSize: 14, fontFamily: "Inter, system-ui, sans-serif" }}
               axisLine={{ stroke: "rgba(0,0,0,0.08)" }}
               tickLine={false}
             />
             <YAxis
               dataKey="albums"
-              tick={{ fill: "#9ca3af", fontSize: 14 }}
+              tick={{ fill: "#9ca3af", fontSize: 14, fontFamily: "Inter, system-ui, sans-serif" }}
               axisLine={false}
               tickLine={false}
             />
