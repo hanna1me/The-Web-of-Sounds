@@ -4,7 +4,7 @@ import { vl } from "@/lib/vegaLiteClient";
 export function TopTracksChart({ topTracks = [] }) {
   const chartRef = useRef(null);
   const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(600);
+  const [containerWidth, setContainerWidth] = useState(800);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -24,7 +24,8 @@ export function TopTracksChart({ topTracks = [] }) {
     if (!Array.isArray(topTracks) || topTracks.length === 0) return;
     if (!vl) return;
 
-    const w = Math.max(320, Math.floor(containerWidth));
+    // Subtract y-axis label column width so the plot area + labels fit the container
+    const w = Math.max(200, Math.floor(containerWidth) - 200);
     if (!Number.isFinite(w) || w <= 0) return;
 
     let element;
@@ -46,12 +47,13 @@ export function TopTracksChart({ topTracks = [] }) {
                 domainColor: "rgba(0,0,0,0.08)",
                 tickColor: "transparent",
                 grid: false,
-                labelLimit: 220,
+                labelLimit: 190,
                 labelFontSize: 14,
               }),
             vl
               .x()
               .fieldQ("popularity")
+              .scale({ domain: [0, 100] })
               .title("Popularity score")
               .axis({
                 labelColor: "#9ca3af",
@@ -63,6 +65,7 @@ export function TopTracksChart({ topTracks = [] }) {
                 gridDash: [3, 3],
                 labelFontSize: 14,
                 titleFontSize: 13,
+                values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
               }),
             vl.color().value("#1DB954"),
             vl.tooltip([
@@ -106,7 +109,16 @@ export function TopTracksChart({ topTracks = [] }) {
           className="w-1 h-5 rounded-full"
           style={{ background: "#400074" }}
         />
-        <h3 className="text-base font-semibold" style={{ color: "#000000" }}>Top Tracks</h3>
+        <h3
+          className="text-base font-semibold"
+          style={{
+            color: "#000000",
+            fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          }}
+        >
+          Top Tracks
+        </h3>
       </div>
 
       {hasData ? (
