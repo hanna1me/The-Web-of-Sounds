@@ -62,8 +62,8 @@ export function CompareSection({ compareItems, removeFromCompare }) {
                 src={item.image || "/api/placeholder/56/56"}
                 alt={item.name}
                 style={{
-                  width: 56,
-                  height: 56,
+                  width: 100,
+                  height: 100,
                   borderRadius: "50%",
                   objectFit: "cover",
                   border: "2px solid rgba(64,0,116,0.2)",
