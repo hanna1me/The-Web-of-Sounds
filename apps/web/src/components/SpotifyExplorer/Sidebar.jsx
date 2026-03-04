@@ -48,7 +48,7 @@ export function Sidebar({
             <SlidersHorizontal size={16} />
           </div>
           {activeTab === "explorer" && (
-            <div title="Artist search" style={{ color: "#400074", opacity: 0.5 }}>
+            <div title="Artist search" style={{ color: "#400074", opacity: 0.5, fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
               <Search size={16} />
             </div>
           )}
@@ -60,14 +60,17 @@ export function Sidebar({
         <div className="flex flex-col gap-6 p-4 overflow-y-auto flex-1">
           {/* Year Range */}
           <section className="flex flex-col gap-3">
-            <p className="section-heading">Year Range</p>
+            <p className="section-heading" style={{ color: "#400074", fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>Year Range</p>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium" style={{ color: "#6b7280" }}>From</span>
+                  <span className="text-xs font-medium" style={{ color: "#6b7280", fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>From</span>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-md"
-                    style={{ background: "#400074", color: "#ffffff" }}
+                    style={{ background: "#400074", color: "#ffffff",
+                      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
                   >
                     {yearRange[0]}
                   </span>
@@ -85,10 +88,11 @@ export function Sidebar({
               </div>
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium" style={{ color: "#6b7280" }}>To</span>
+                  <span className="text-xs font-medium" style={{ color: "#6b7280", fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>To</span>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-md"
-                    style={{ background: "#400074", color: "#ffffff" }}
+                    style={{ background: "#400074", color: "#ffffff", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
                   >
                     {yearRange[1]}
                   </span>
@@ -128,6 +132,7 @@ export function Sidebar({
                     border: "1px solid rgba(0,0,0,0.1)",
                     color: "#000000",
                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                    fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
                   }}
                   onFocus={e => {
                     e.currentTarget.style.border = "1px solid rgba(64,0,116,0.5)";
@@ -157,7 +162,7 @@ export function Sidebar({
                         setSearchQuery("");
                       }}
                       className="flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors"
-                      style={{ color: "#000000" }}
+                      style={{ color: "#000000", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(64,0,116,0.06)"}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     >
