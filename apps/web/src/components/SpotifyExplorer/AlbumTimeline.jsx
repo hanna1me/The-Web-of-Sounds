@@ -26,7 +26,11 @@ export function AlbumTimeline({ chartData }) {
           className="w-1 h-5 rounded-full"
           style={{ background: "#400074" }}
         />
-        <h3 className="text-base font-semibold" style={{ color: "#000000" }}>Album Releases</h3>
+        <h3 className="text-base font-semibold" style={{
+            color: "#000000",
+            fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          }}># of Albums Released</h3>
       </div>
 
       {chartData.length > 0 ? (

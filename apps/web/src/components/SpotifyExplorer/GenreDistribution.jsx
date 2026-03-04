@@ -21,7 +21,11 @@ export function GenreDistribution({ pieData = [] }) {
           className="w-1 h-5 rounded-full"
           style={{ background: "#400074" }}
         />
-        <h3 className="text-base font-semibold" style={{ color: "#000000" }}>Genre Distribution</h3>
+        <h3 className="text-base font-semibold" style={{
+            color: "#000000",
+            fontFamily:
+              'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          }}>Genre Distribution</h3>
       </div>
 
       {hasData ? (

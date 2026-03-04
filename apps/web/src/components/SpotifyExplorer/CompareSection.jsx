@@ -80,10 +80,10 @@ export function CompareSection({ compareItems, removeFromCompare }) {
                   <span>Followers</span>
                 </div>
                 <span className="font-medium" style={{ color: "#6b7280" }}>
-                  {item.followers.toLocaleString()}
+                  {item.followers?.toLocaleString() ?? 0}
                 </span>
               </div>
-              {item.genres.length > 0 && (
+              {item.genres?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {item.genres.map((g) => (
                     <span

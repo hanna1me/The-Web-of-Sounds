@@ -1,10 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { vl } from "@/lib/vegaLiteClient";
 
+const TOOLTIP_STYLE = {
+  backgroundColor: "#400074",
+  border: "none",
+  borderRadius: "10px",
+  color: "#ffffff",
+  fontSize: "14px",
+  fontFamily: "Inter, system-ui, sans-serif",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+};
+
 export function TopTracksChart({ topTracks = [] }) {
   const chartRef = useRef(null);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(800);
+
+  useEffect(() => {
+    const id = "top-tracks-tooltip-style";
+    if (document.getElementById(id)) return;
+    const styleEl = document.createElement("style");
+    styleEl.id = id;
+    const cssProps = Object.entries(TOOLTIP_STYLE)
+      .map(([k, v]) => `  ${k.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`)}: ${v} !important`)
+      .join(";\n");
+    styleEl.textContent = `#vg-tooltip-element {\n${cssProps};\n  padding: 8px 12px !important;\n}`;
+    document.head.appendChild(styleEl);
+    return () => styleEl.remove();
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
