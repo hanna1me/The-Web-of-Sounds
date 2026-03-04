@@ -64,10 +64,10 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
             key={label}
             className={`glass card-hover flex flex-col items-center justify-center py-5 gap-1 fade-in-${i + 1}`}
           >
-            <span className="text-2xl font-bold tracking-tight" style={{ color: "#400074" }}>
+            <span className="text-2xl font-bold tracking-tight" style={{ color: "#400074", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
               <AnimatedNumber value={value} />
             </span>
-            <span className="text-xs font-medium" style={{ color: "#6b7280" }}>
+            <span className="text-xs font-medium" style={{ color: "#6b7280", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
               {label}
             </span>
           </div>
@@ -81,9 +81,9 @@ export function OverviewTab({ collaborationData, yearRange, globalArtists }) {
             className="w-1 h-6 rounded-full"
             style={{ background: "#400074" }}
           />
-          <h3 className="text-base font-semibold" style={{ color: "#000000" }}>
+          <h3 className="text-base font-semibold" style={{ color: "#000000", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
             Artist Collaboration Network
-            <span style={{ marginLeft: "8px", fontSize: "0.875rem", fontWeight: 400, color: "#6b7280" }}>
+            <span style={{ marginLeft: "8px", fontSize: "0.875rem", fontWeight: 400, color: "#6b7280", fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
               {yearRange[0]}–{yearRange[1]}
             </span>
           </h3>
