@@ -19,13 +19,14 @@ export function ArtistStats({ artistData, addToCompare, compareItems }) {
             height: 70,
             border: "2px solid rgba(64,0,116,0.3)",
             boxShadow: "0 0 16px rgba(64,0,116,0.12)",
+            borderRadius:"50px",
           }}
         >
           <img
             src={artist.images?.[0]?.url || "/api/placeholder/64/64"}
             alt={artist.name}
             className="rounded-full"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "50px" }}
           />
         </div>
 
