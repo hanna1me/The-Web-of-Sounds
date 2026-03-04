@@ -22,16 +22,35 @@ export function CompareSection({ compareItems, removeFromCompare }) {
         {compareItems.map((item, index) => (
           <div
             key={item.id}
-            className="card-hover relative flex flex-col items-center gap-2 p-3 rounded-xl"
+            className="card-hover relative flex flex-col gap-2 p-3 rounded-xl"
             style={{
               background: "#ffffff",
               border: "1px solid rgba(64,0,116,0.15)",
               boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
             }}
           >
+            {/* Header row: image + name + remove */}
+            <div className="flex items-center gap-2 pr-6">
+              <img
+                src={item.image || "/api/placeholder/28/28"}
+                alt={item.name}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  flexShrink: 0,
+                  border: "1.5px solid rgba(64,0,116,0.25)",
+                }}
+              />
+              <h4 className="font-semibold text-xs leading-tight truncate" style={{ color: "#000000" }}>
+                {item.name}
+              </h4>
+            </div>
+
             <button
               onClick={() => removeFromCompare(index)}
-              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-lg transition-colors"
+              className="absolute top-3 right-3 w-5 h-5 flex items-center justify-center rounded-lg transition-colors"
               style={{ color: "#9ca3af" }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = "rgba(64,0,116,0.08)";
@@ -42,21 +61,8 @@ export function CompareSection({ compareItems, removeFromCompare }) {
                 e.currentTarget.style.color = "#9ca3af";
               }}
             >
-              <X size={12} />
+              <X size={11} />
             </button>
-
-            <img
-              src={item.image || "/api/placeholder/40/40"}
-              alt={item.name}
-              className="w-10 h-10 rounded-full object-cover"
-              style={{
-                border: "2px solid rgba(64,0,116,0.25)",
-                boxShadow: "0 0 8px rgba(64,0,116,0.1)",
-              }}
-            />
-            <h4 className="font-semibold text-center text-xs leading-tight" style={{ color: "#000000" }}>
-              {item.name}
-            </h4>
 
             <div className="w-full flex flex-col gap-2 text-xs">
               <div className="flex items-center justify-between">

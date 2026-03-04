@@ -56,7 +56,14 @@ export function ArtistStats({ artistData, addToCompare, compareItems }) {
             </div>
             <div className="flex items-center gap-1.5">
               <TrendingUp size={13} style={{ color: "#1DB954" }} />
-              <span className="text-sm font-semibold" style={{ color: "#1DB954" }}>
+              <span
+                className="text-sm font-semibold"
+                style={{
+                  color: "#1DB954",
+                  fontFamily:
+                    '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                }}
+              >
                 {artist.popularity}/100
               </span>
             </div>
@@ -95,17 +102,22 @@ export function ArtistStats({ artistData, addToCompare, compareItems }) {
 
       {/* Genre tags */}
       {artist.genres?.length > 0 && (
-        <div className="flex flex-wrap gap-5">
+        <div
+          className="flex flex-wrap"
+          style={{ gap: "18px", padding: "8px 8px" }}
+        >
           {artist.genres.map((genre) => (
             <span
               key={genre}
-              className="px-5 py-2 rounded-full font-medium"
+              className="px-10 py-1.5 font-sm"
               style={{
                 background: "#400074",
                 color: "#ffffff",
                 fontFamily:
                   '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                fontSize: "0.7rem",
+                fontSize: "0.8rem",
+                borderRadius: "30px",
+                gap: "18px", padding: "6px"
               }}
             >
               {genre}
