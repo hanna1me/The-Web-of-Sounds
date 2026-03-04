@@ -51,7 +51,13 @@ export function GenreDistribution({ pieData = [] }) {
           </PieChart>
         </ResponsiveContainer>
       ) : (
-        <div className="h-[280px] flex items-center justify-center text-sm" style={{ color: "#9ca3af" }}>
+        <div
+          className="h-[280px] flex items-center justify-center text-sm"
+          style={{
+            color: "#9ca3af",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
           Select an artist to see genre distribution
         </div>
       )}

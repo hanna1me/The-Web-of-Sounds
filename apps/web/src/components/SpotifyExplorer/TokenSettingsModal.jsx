@@ -37,12 +37,11 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
             >
               <Key size={15} color="#CDF35F" />
             </div>
-            <span className="font-semibold text-base" style={{ color: "#000000" }}>Spotify API Token</span>
+            <span className="font-semibold text-base" style={{ color: "#000000", fontFamily: "Inter, system-ui, sans-serif" }}>Spotify API Token</span>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ color: "#9ca3af" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.06)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
@@ -57,6 +56,7 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
             background: "rgba(64,0,116,0.04)",
             border: "1px solid rgba(64,0,116,0.12)",
             color: "#6b7280",
+            fontFamily: "Inter, system-ui, sans-serif",
           }}
         >
           Get a short-lived access token from{" "}
@@ -86,7 +86,7 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
               background: "#ffffff",
               border: `1px solid ${draft ? "rgba(64,0,116,0.4)" : "rgba(0,0,0,0.1)"}`,
               color: "#000000",
-              fontFamily: "monospace",
+              fontFamily: "Inter, system-ui, sans-serif",
             }}
             onFocus={e => {
               e.currentTarget.style.border = "1px solid rgba(64,0,116,0.5)";
@@ -99,7 +99,7 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
           />
           {token && (
-            <p className="text-xs" style={{ color: "#400074" }}>
+            <p className="text-xs" style={{ color: "#400074", fontFamily: "Inter, system-ui, sans-serif" }}>
               ✓ Token is currently set
             </p>
           )}
@@ -114,6 +114,7 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
               background: "rgba(0,0,0,0.04)",
               border: "1px solid rgba(0,0,0,0.08)",
               color: "#6b7280",
+              fontFamily: "Inter, system-ui, sans-serif",
             }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.07)"}
             onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
@@ -127,6 +128,7 @@ export function TokenSettingsModal({ token, setToken, onClose }) {
               background: "#400074",
               color: "#ffffff",
               boxShadow: draft ? "0 2px 12px rgba(64,0,116,0.3)" : "none",
+              fontFamily: "Inter, system-ui, sans-serif",
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = "#2d0054";
