@@ -167,10 +167,16 @@ export function Sidebar({
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     >
                       <img
-                        src={artist.images[0]?.url || "/api/placeholder/32/32"}
+                        src={artist.images[0]?.url || "/api/placeholder/20/20"}
                         alt={artist.name}
-                        className="w-7 h-7 rounded-full flex-shrink-0 object-cover"
-                        style={{ border: "1px solid rgba(64,0,116,0.15)" }}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          flexShrink: 0,
+                          objectFit: "cover",
+                          border: "1px solid rgba(64,0,116,0.15)",
+                        }}
                       />
                       <span className="truncate">{artist.name}</span>
                     </button>
